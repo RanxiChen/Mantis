@@ -1,5 +1,7 @@
 package core.RegFile
 
+import chisel3._
+
 /**Firstly, used for multi-cycles, but not pipeline
  * In every period, just read(1+) or write
  * In case, reading more than need do not influent 
