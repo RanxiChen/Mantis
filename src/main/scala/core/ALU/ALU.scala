@@ -1,5 +1,61 @@
 package core.ALU
 
 import chisel3._
+import chisel3.util._
 
-class ALU extends Module
+import _root_.circt.stage.ChiselStage
+
+object ALUOp {
+  val OP_ADD = 0.U(4.W)
+  val OP_SUB = 1.U(4.W)
+  val OP_AND = 2.U(4.W)
+  val OP_OR  = 3.U(4.W)
+  val OP_XOR = 4.U(4.W)
+  val OP_SLL = 5.U(4.W)
+  val OP_SRL = 6.U(4.W)
+  val OP_SRA = 7.U(4.W)
+}
+
+class ALU extends Module {
+  val io = IO(new Bundle {
+    val src1 = Input(UInt(64.W))
+    val src2 = Input(UInt(64.W))
+    val out = Output(UInt(64.W))
+    val op = Input(UInt(4.W))
+  })
+  io.out := 0.U
+  switch(io.op) {
+    is(ALUOp.OP_ADD) { io.out := io.src1 + io.src2 }
+    is(ALUOp.OP_SUB) { io.out := io.src1 - io.src2 }
+    is(ALUOp.OP_AND) { io.out := io.src1 & io.src2 }
+    is(ALUOp.OP_OR)  { io.out := io.src1 | io.src2 }
+    is(ALUOp.OP_XOR) { io.out := io.src1 ^ io.src2 }
+    is(ALUOp.OP_SLL) { io.out := io.src1 << io.src2(5,0) }
+    is(ALUOp.OP_SRL) { io.out := io.src1 >> io.src2(5,0) }
+    is(ALUOp.OP_SRA) { io.out := (io.src1.asSInt >> io.src2(5,0)).asUInt }
+  }
+}
+
+
+object ALU_V extends App {
+  ChiselStage.emitSystemVerilogFile(
+    new ALU,
+    Array("--target-dir", "build/ALU"),
+    firtoolOpts = Array("-disable-all-randomization", "-strip-debug-info")
+  )
+}
+
+object ALU_model {
+  def res(op:Int,src1:BigInt,src2:BigInt):BigInt={
+    op match {
+      case 0 => src1 + src2
+      case 1 => src1 - src2
+      case 2 => src1 & src2
+      case 3 => src1 | src2
+      case 4 => src1 ^ src2
+      case 5 => src1 << (src2%64)
+      case 6 => src1 >> (src2%64)
+      case 7 => (src1.asSInt >> src2).asUInt
+    }
+  }
+}
