@@ -34,6 +34,10 @@ class CtrlU extends Module {
       io.alu_op := OP_SLL
     }.elsewhen(func3 === "b101".U){
       io.alu_op := Mux(io.inst(30),OP_SRA,OP_SRL)
+    }.elsewhen(func3 ==="b010".U){
+      io.alu_op := OP_SLT
+    }.elsewhen(func3 := "b011".U){
+      io.alu_op := OP_SLTU
     }.otherwise{
       io.alu_op := OP_USED
     }
@@ -50,6 +54,10 @@ class CtrlU extends Module {
       io.alu_op := OP_SLL
     }.elsewhen(func3 === "b101".U){
       io.alu_op := Mux(io.inst(30),OP_SRA,OP_SRL)
+    }.elsewhen(func3 === "b010".U ){
+      io.alu_op := OP_SLT
+    }.elsewhen(func3 === "b011".U ){
+      io.alu_op := OP_SLTU
     }.otherwise{
       io.alu_op := OP_USED
     }
