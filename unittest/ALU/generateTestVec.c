@@ -9,10 +9,11 @@ typedef enum {
     ALU_AND = 2,
     ALU_OR  = 3,
     ALU_XOR = 4,
-    //ALU_SLT = 5,
     ALU_SLL = 5,
     ALU_SRL = 6,
     ALU_SRA = 7,
+    ALU_SLT = 8,
+    ALU_SLTU = 9,
     ALU_OP_COUNT
 } ALUOp;
 
@@ -24,7 +25,8 @@ int64_t compute_result(int64_t a, int64_t b, ALUOp op) {
         case ALU_AND: return a & b;
         case ALU_OR:  return a | b;
         case ALU_XOR: return a ^ b;
-        //case ALU_SLT: return (a < b) ? 1 : 0;
+        case ALU_SLT: return (a < b) ? 1 : 0;
+        case ALU_SLTU:return ( (uint64_t)a < (uint64_t)b ) ? 1 :0;
         case ALU_SLL: return a << (b & 0x3F); // 只使用低6位进行移位
         case ALU_SRL: return (uint64_t)a >> (b & 0x3F);
         case ALU_SRA: return a >> (b & 0x3F);

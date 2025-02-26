@@ -1,5 +1,0 @@
-[0m[[0m[31merror[0m] [0m[0m/home/chen/RVCORE/Mantis/src/main/scala/tool/Compile.scala:31:9: method CC is defined twice;[0m
-[0m[[0m[31merror[0m] [0m[0m  the conflicting method CC was defined at line 28:9[0m
-[0m[[0m[31merror[0m] [0m[0m    def CC(inst_template:String,rd:Int,rs1:Int,imm:Int):BigInt={[0m
-[0m[[0m[31merror[0m] [0m[0m        ^[0m
-[0m[[0m[31merror[0m] [0m[0mone error found[0m

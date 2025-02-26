@@ -1,8 +1,0 @@
-ADD,0000000,rs2,rs1,000,rd,0110011 //x[rd] = x[rs1] + x[rs2]
-SUB,0100000,rs2,rs1,000,rd,0110011 //x[rd] = x[rs1] - x[rs2]
-SLL,0000000,rs2,rs1,001,rd,0110011 //x[rd] = x[rs1] << x[rs2](6)
-SRL,0000000,rs2,rs1,101,rd,0110011 //x[rd] = x[rs1] >> x[rs2](6)
-SRA,0100000,rs2,rs1,101,rd,0110011 //x[rd] = x[rs1] >> x[rs2](6)
-OR ,0000000,rs2,rs1,110,rd,0110011 //x[rd] = x[rs1] | x[rs2]
-AND,0000000,rs2,rs1,111,rd,0110011 //x[rd] = x[rs1] & x[rs2]
-XOR,0000000,rs2,rs1,100,rd,0110011 //x[rd] = x[rs1] ^ x[rs2]

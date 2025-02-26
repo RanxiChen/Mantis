@@ -5,6 +5,7 @@ import chisel3.experimental.BundleLiterals._
 import chisel3.simulator.EphemeralSimulator._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import tool.CC._
 
 class ExtInstNoMemPUSpec extends AnyFreeSpec with Matchers {
     "Just add 1 to x1" in {

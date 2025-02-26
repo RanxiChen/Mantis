@@ -3,6 +3,13 @@ test:
 	sbt 'testOnly core.ALU.ALUSpec'
 
 test_alu:
-	( cd unittest/ALU && gcc generateTestVec.c -o generator && ./generator )
+	make -C unittest/ALU
 	sbt 'testOnly core.ALU.ALUSpec'
 
+SUBDIR = unittest/ALU
+
+clean:
+	@for dir in $(SUBDIR);do \
+		echo "Cleaning in $$dir...";\
+		$(MAKE) -C $$dir clean; \
+	done
