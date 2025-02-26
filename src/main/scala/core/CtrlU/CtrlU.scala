@@ -1,28 +1,61 @@
 package core.CtrlU
 
 import chisel3._
-
+import core.ALU.ALUOp._
 /**
  * Control Unit for RVCORE
  */
 class CtrlU extends Module {
   val io = IO(new Bundle {
-    val op7 = Input(UInt(7.W))
-    val func3 = Input(UInt(3.W))
-    val func7 = Input(UInt(7.W))
+    val inst = Input(UInt(64.W))
     //OutPut
     val alu_op = Output(UInt(4.W))
+    val regoimm = Output(Bool())
   })
 
-  val alu_op = Wire(UInt(4.W))
-  alu_op := 15.U
-  
-  when(io.op7 === "b0110011".U){
-    when(io.func3 === "b000".U){
-      when(io.func7 === "b0000000".U){
-        alu_op := 0.U
-      }
-    }
-  }
-}
+  val op7 = Wire(UInt(7.W))
+  op7 := io.inst(6,0)
+  val func3=Wire(UInt(3.W))
+  func3 := io.inst(14,12)
+  io.alu_op := OP_USED
 
+  io.regoimm := ( op7 === "b01100011".U) //R-type
+
+  when(op7 === "b0010011".U){
+    when(func3 === "b000".U ){
+      io.alu_op := OP_ADD
+    }.elsewhen(func3 === "b100".U ){
+      io.alu_op := OP_XOR
+    }.elsewhen(func3 === "b110".U){
+      io.alu_op := OP_OR
+    }.elsewhen(func3 ==="b111".U){
+      io.alu_op := OP_AND
+    }.elsewhen(func3 === "b001".U ){
+      io.alu_op := OP_SLL
+    }.elsewhen(func3 === "b101".U){
+      io.alu_op := Mux(io.inst(30),OP_SRA,OP_SRL)
+    }.otherwise{
+      io.alu_op := OP_USED
+    }
+  }.elsewhen(op7 === "b0110011".U){
+    when(func3 === "b000".U ){
+      io.alu_op := Mux(io.inst(30),OP_SUB,OP_ADD)
+    }.elsewhen(func3 === "b100".U ){
+      io.alu_op := OP_XOR
+    }.elsewhen(func3 ==="b110".U){
+      io.alu_op := OP_OR
+    }.elsewhen(func3 ==="b111".U){
+      io.alu_op := OP_AND
+    }.elsewhen(func3 === "b001".U ){
+      io.alu_op := OP_SLL
+    }.elsewhen(func3 === "b101".U){
+      io.alu_op := Mux(io.inst(30),OP_SRA,OP_SRL)
+    }.otherwise{
+      io.alu_op := OP_USED
+    }
+
+    
+  }
+
+
+}

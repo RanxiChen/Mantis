@@ -13,7 +13,7 @@ class RegFileIO(val debug:Boolean = false) extends Bundle {
   val rs1_addr = Input(UInt(5.W))
   val rs2_addr = Input(UInt(5.W))
   val W_enable = Input(Bool()) //Write when true
-  val rd_data = Output(UInt(64.W))
+  val rd_data = Input(UInt(64.W))
   val rs1_data = Output(UInt(64.W))
   val rs2_data = Output(UInt(64.W))
   val content = if(debug) Some(Output(Vec(32,UInt(64.W)))) else None
@@ -21,7 +21,8 @@ class RegFileIO(val debug:Boolean = false) extends Bundle {
 
 class RegFile(val debug:Boolean = false) extends Module {
   val io = IO(new RegFileIO(debug))
-  val regfile = Vec(32, RegInit(0.U(64.W)))
+  //val regfile = Vec(32, RegInit(0.U(64.W)))
+  val regfile = RegInit(VecInit(Seq.fill(32)(0.U(64.W))))
   //Read, not need other process
   io.rs1_data := regfile(io.rs1_addr)
   io.rs2_data := regfile(io.rs2_addr)

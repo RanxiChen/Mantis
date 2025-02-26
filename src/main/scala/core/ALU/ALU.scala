@@ -14,6 +14,7 @@ object ALUOp {
   val OP_SLL = 5.U(4.W)
   val OP_SRL = 6.U(4.W)
   val OP_SRA = 7.U(4.W)
+  val OP_USED = 8.U(4.W)
 }
 
 class ALU extends Module {
@@ -33,6 +34,7 @@ class ALU extends Module {
     is(ALUOp.OP_SLL) { io.out := io.src1 << io.src2(5,0) }
     is(ALUOp.OP_SRL) { io.out := io.src1 >> io.src2(5,0) }
     is(ALUOp.OP_SRA) { io.out := (io.src1.asSInt >> io.src2(5,0)).asUInt }
+    is(ALUOp.OP_USED){io.out := 0.U}
   }
 }
 

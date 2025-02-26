@@ -2,6 +2,7 @@
 package core.PU
 
 import chisel3._
+import chisel3.util._
 
 import core.ALU.ALU
 import core.CtrlU.CtrlU
@@ -35,23 +36,25 @@ class ExtInstNoMemPU extends Module{
   val rd = Wire(UInt(5.W))
   rd := io.inst(11,7)
 
+
   regFile.io.rs1_addr := src1
   regFile.io.rs2_addr := src2
   regFile.io.W_enable := true.B
   regFile.io.rd_addr := rd
   regFile.io.rd_data := fU.io.out
 
-  //connect ALU
-  
-  fU.io.src1 := regFile.io.rs1_data
-  fU.io.src2 := regFile.io.rs2_data
 
   //contrl unit,just decode op for ALU by func3,func7,op7
   val ctrlU = Module(new CtrlU)
-  ctrlU.io.op7 := io.inst(6,0)
-  ctrlU.io.func3 := io.inst(14,12)
-  ctrlU.io.func7 := io.inst(31,25)
+  ctrlU.io.inst := io.inst
   fU.io.op := ctrlU.io.alu_op
+  val regoimm = ctrlU.io.regoimm
+
+  val imm = Module(new ImmGen)
+  imm.io.raw := io.inst(31,20)
+  //connect ALU  
+  fU.io.src1 := regFile.io.rs1_data
+  fU.io.src2 := Mux(regoimm,regFile.io.rs2_data,imm.io.out)
 
 }
 
