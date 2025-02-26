@@ -45,17 +45,3 @@ object ALU_V extends App {
   )
 }
 
-object ALU_model {
-  def res(op:Int,src1:BigInt,src2:BigInt):BigInt={
-    op match {
-      case 0 => src1 + src2
-      case 1 => src1 - src2
-      case 2 => src1 & src2
-      case 3 => src1 | src2
-      case 4 => src1 ^ src2
-      case 5 => src1 << (src2%64)
-      case 6 => src1 >> (src2%64)
-      case 7 => (src1.asSInt >> src2).asUInt
-    }
-  }
-}

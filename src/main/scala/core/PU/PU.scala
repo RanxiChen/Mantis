@@ -1,22 +1,70 @@
-/*
+
 package core.PU
 
-import core.InstrMem.InstrMem
-import core.RegFile.RegFile
-import core.DataMem.DataMem
-
 import chisel3._
-*/
+
+import core.ALU.ALU
+import core.CtrlU.CtrlU
+import core.RegFile.RegFile
+
 /**PU for processing unit
  * will be used to generate one "core"
  * I mean , such as one single RV64gc core
  */
 
-/*
-class PU extends Module{
-  val PC = RegInit(0.U(32.W))
-  val InstrMem = Module(new InstrMem)
-  val RegFile = Module(new RegFile)
-  val DataMem = Module(new DataMem)
+/**
+ * Very Early version, single cycle,just add
+ * and instructions from outside
+ * No mem
+ */
+
+class ExtInstNoMemPU extends Module{
+  val io = IO(new Bundle {
+    val inst = Input(UInt(64.W))
+    val regValue = Output(Vec(32,UInt(64.W)))
+  })
+  val fU = Module(new ALU)
+  val regFile = Module(new RegFile(true))
+  io.regValue := regFile.io.content.get
+
+  //inst 2 regFile
+  val src1 = Wire(UInt(5.W))
+  val src2 = Wire(UInt(5.W))
+  src1 := io.inst(19,15)
+  src2 := io.inst(24,20)
+  val rd = Wire(UInt(5.W))
+  rd := io.inst(11,7)
+
+  regFile.io.rs1_addr := src1
+  regFile.io.rs2_addr := src2
+  regFile.io.W_enable := true.B
+  regFile.io.rd_addr := rd
+  regFile.io.rd_data := fU.io.out
+
+  //connect ALU
+  
+  fU.io.src1 := regFile.io.rs1_data
+  fU.io.src2 := regFile.io.rs2_data
+
+  //contrl unit,just decode op for ALU by func3,func7,op7
+  val ctrlU = Module(new CtrlU)
+  ctrlU.io.op7 := io.inst(6,0)
+  ctrlU.io.func3 := io.inst(14,12)
+  ctrlU.io.func7 := io.inst(31,25)
+  fU.io.op := ctrlU.io.alu_op
+
 }
-*/
+
+class ImmGen extends Module{
+  val io = IO(new Bundle {
+    val raw = Input(UInt(12.W))
+    val out = Output(UInt(64.W))
+  })
+  io.out := Fill(52,io.raw(11)) ## io.raw
+}
+
+
+
+
+   
+

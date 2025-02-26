@@ -6,6 +6,50 @@ import chisel3.simulator.EphemeralSimulator._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 
+
+import scala.io.Source
+import java.io.File
+
+
+// 测试用例类
+case class ALUTestCase(a: BigInt, b: BigInt, op: Int, expected: BigInt)
+
+class ALUSpec extends AnyFreeSpec with Matchers {
+  
+  // 解析16进制字符串为BigInt
+  def parseHexString(hexStr: String): BigInt = BigInt(hexStr.stripPrefix("0x"), 16)
+  
+  // 从CSV文件读取测试用例
+  def loadTestCases(filename: String): Seq[ALUTestCase] = {
+    val source = Source.fromFile(filename)
+    val testCases = source.getLines().drop(1) // 跳过标题行
+      .map { line =>
+        val fields = line.split(",")
+        ALUTestCase(
+          a = parseHexString(fields(0)),
+          b = parseHexString(fields(1)),
+          op = fields(2).toInt,
+          expected = parseHexString(fields(3))
+        )
+      }.toSeq
+    source.close()
+    testCases
+  }
+  
+  "ALU should pass all test cases from CSV" in {
+    
+    simulate(new ALU) { dut =>
+      val testCases = loadTestCases("unittest/ALU/alu_testcases.csv")
+      for (testCase <- testCases) {
+        dut.io.op.poke(testCase.op.U)
+        dut.io.src1.poke(testCase.a.U)
+        dut.io.src2.poke(testCase.b.U)
+        dut.io.out.expect(testCase.expected.U)
+      }
+      }
+    }
+  }
+
 class ALU_ADDSpec extends AnyFreeSpec with Matchers {
   "test 0+1=1" in {
     simulate(new ALU) { dut =>
@@ -82,5 +126,7 @@ class ALU_ANDSpec extends AnyFreeSpec with Matchers {
       }
     }
   }
+
+
 }
 
