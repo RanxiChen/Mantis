@@ -15,5 +15,3 @@
 1. [riscv-gnu-toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain)
 Now, I use elf version,nighty release.
 
-## todo
-- [ ] add test frameworks for this single cycle RV64I(part) core
