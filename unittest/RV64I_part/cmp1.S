@@ -1,4 +1,3 @@
-.text
 .global _start
 _start:
     # R型指令测试
@@ -15,8 +14,4 @@ _start:
     # 逻辑运算
     and a6, a0, a1
     or a7, a0, a1
-    xor s2, a0, a1
     
-    # 结束
-    addi a0, zero, 0
-    ecall  # 这个可能需要特别处理，取决于你的实现

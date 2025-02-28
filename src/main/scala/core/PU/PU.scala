@@ -44,7 +44,6 @@ class ExtInstNoMemPU extends Module{
   regFile.io.rd_data := fU.io.out
 
 
-  //contrl unit,just decode op for ALU by func3,func7,op7
   val ctrlU = Module(new CtrlU)
   ctrlU.io.inst := io.inst
   fU.io.op := ctrlU.io.alu_op

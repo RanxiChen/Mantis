@@ -19,7 +19,7 @@ class CtrlU extends Module {
   func3 := io.inst(14,12)
   io.alu_op := OP_USED
 
-  io.regoimm := ( op7 === "b01100011".U) //R-type
+  io.regoimm := ( op7 === "b0110011".U) //R-type
 
   when(op7 === "b0010011".U){
     when(func3 === "b000".U ){
@@ -36,7 +36,7 @@ class CtrlU extends Module {
       io.alu_op := Mux(io.inst(30),OP_SRA,OP_SRL)
     }.elsewhen(func3 ==="b010".U){
       io.alu_op := OP_SLT
-    }.elsewhen(func3 := "b011".U){
+    }.elsewhen(func3 === "b011".U){
       io.alu_op := OP_SLTU
     }.otherwise{
       io.alu_op := OP_USED
