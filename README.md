@@ -1,7 +1,7 @@
 # Mantis
 
 ## cpu
-- [ ] one single-cycle RV64I(part) core, Just compution
+- [x] one single-cycle RV64I(part) core, Just compution (branch cmp_64i)
 - [ ] single-cycle RV64I
 - [ ] single-cycle RV64gc
 - [ ] pipelined RV64gc
