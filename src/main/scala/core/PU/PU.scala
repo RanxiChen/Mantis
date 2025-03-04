@@ -65,8 +65,3 @@ class ImmGen extends Module{
   io.out := Fill(52,io.raw(11)) ## io.raw
 }
 
-
-
-
-   
-
