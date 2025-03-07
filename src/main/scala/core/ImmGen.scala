@@ -3,7 +3,6 @@ package core
 import chisel3._
 import chisel3.util._
 
-import core.signal._
 
 class ImmGen_RV64I extends Module{
   val io = IO(new Bundle{
@@ -19,19 +18,19 @@ class ImmGen_RV64I extends Module{
   val immu = Fill(64-32,io.inst(31)) ## io.inst(31,12) ## Fill(12,false.B)
 
   switch(io.sel){
-    is(IMM_I){
+    is(Signal.IMM_I){
       io.imm := immi
     }
-    is(IMM_S){
+    is(Signal.IMM_S){
       io.imm := imms
     }
-    is(IMM_B){
+    is(Signal.IMM_B){
       io.imm := immb
     }
-    is(IMM_U){
+    is(Signal.IMM_U){
       io.imm := immu
     }
-    is(IMM_J){
+    is(Signal.IMM_J){
       io.imm := immj
     }
   }

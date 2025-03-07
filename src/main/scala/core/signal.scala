@@ -1,4 +1,5 @@
 package core
+import chisel3._
 
 object Signal {
   val IMM_I = 0.U(3.W)
@@ -9,9 +10,9 @@ object Signal {
 
   // PC_sel
   val PC_4 = 0.U(2.W)
-  val PC_Imm = 1.U(2.W)
-  val PC_jalr = 2.U(2.W)
-  val PC_bru = 3.U(2.W)
+  val PC_IMM = 1.U(2.W)
+  val PC_JRL = 2.U(2.W)
+  val PC_BRU = 3.U(2.W)
 
   //ALU_src1
   val A_RS1 = 0.U(1.W)
@@ -36,20 +37,20 @@ object Signal {
   val S = true.B
 
   //Mem WE
-  val W = true.B
-  val R = false.B
-  val X = false.B
+  val Mem_W = true.B
+  val Mem_R = false.B
+  val Mem_X = false.B
 
   //Regfile Write
-  val W = true.B
-  val R = false.B
-  val X = false.B
+  val Reg_W = true.B
+  val Reg_R = false.B
+  val Reg_X = false.B
 
-  //Reg data source
-  val ALU = 0.U(2.W)
-  val RS2 = 1.U(2.W)
-  val MEM = 2.U(2.W)
-  val PC4 = 3.U(2.W)
-  val XXX = 0.U(2.W)
+  //WB source
+  val DATA_ALU = 0.U(2.W)
+  val DATA_IMM = 1.U(2.W)
+  val DATA_MEM = 2.U(2.W)
+  val DATA_PC4 = 3.U(2.W)
+  val DATA_XXX = 0.U(2.W)
 
 }

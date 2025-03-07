@@ -1,6 +1,7 @@
 package core.BrExe
 
 import chisel3._
+import chisel3.util._
 
 object BrOp {
   val Br_EQ = 0.U(3.W)
@@ -16,7 +17,7 @@ class BrU extends Module{
   val io = IO(new Bundle{
     val rs1 = Input(UInt(64.W))
     val rs2 = Input(UInt(64.W))
-    val BrOp = Input(UInt(3.U))
+    val BrOp = Input(UInt(3.W))
     val taken = Output(Bool())
   })
   val eq = io.rs1 === io.rs2

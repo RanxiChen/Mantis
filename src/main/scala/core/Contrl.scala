@@ -10,10 +10,11 @@ class CtrlIO extends Bundle {
   val alu_src1 = Output(UInt(1.W))
   val alu_src2 = Output(UInt(2.W))
   val alu_op = Output(UInt(4.W))
+  val bru_op = Output(UInt(3.W))
   val MemWE = Output(Bool())
   val MemWidth = Output(UInt(3.W))
   val MemSig = Output(Bool())
   val RegWE = Output(Bool())
-  val RfSel = Output(2.W) 
+  val RfSel = Output(UInt(2.W)) 
 }
 

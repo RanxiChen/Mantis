@@ -12,7 +12,7 @@ class IFMemIO extends Bundle{
 class MemIO extends Bundle {
   val WE = Input(Bool())
   val addr = Input(UInt(64.W))
-  val width = Input(UInt(3.W))
+  val bfwd = Input(UInt(3.W))
   val sig = Input(Bool()) // 0 for u; 1 for s
   val wdata = Input(UInt(64.W))
   val rdata = Output(UInt(64.W))
@@ -37,7 +37,7 @@ class MainMem(nkib:Int)(debug:Boolean=false) extends Module{
   if(debug) {io.ProbePort.get := content(io.ProbePort.get.addr)}
 
   //IF read
-  val valid_IF_addr = Mux(io.IFPort.addr(1,0) === 0.U && io.IFPort.addr +3.U <= nkib*1024.U, io.IFPort.addr,0.U)
+  val valid_IF_addr = Mux(io.IFPort.addr(1,0) === 0.U && io.IFPort.addr +3.U <= (nkib*1024).U, io.IFPort.addr,0.U)
   io.IFPort.inst := content(valid_IF_addr +3.U) ##  content(valid_IF_addr + 2.U) ##  content(valid_IF_addr +1.U) ##  content(valid_IF_addr ) //little_endiant
   
   //Mem
@@ -63,7 +63,7 @@ class MainMem(nkib:Int)(debug:Boolean=false) extends Module{
 
  val word_raw = Cat(Seq.tabulate(8)(i => content(io.MemPort.addr + (7-i).U))) //get 64-bits
  val load_sig = false.B
-  switch(io.MemPort.width){
+  switch(io.MemPort.bfwd){
     is("b100".U){io.MemPort.rdata := word_raw}
     is("b010".U){
       when(io.MemPort.sig){
@@ -94,7 +94,7 @@ class MainMem(nkib:Int)(debug:Boolean=false) extends Module{
 
   //Mem write
   
-  val store_hw_index = io.MemPort.width ## false.B
+  val store_hw_index = io.MemPort.bfwd ## false.B
   for(i <- 0 until 8){
     when( (i.U <= store_hw_index) && io.MemPort.WE){
       content(io.MemPort.addr + i.U) := io.MemPort.wdata((i+1)*8-1, i*8)
