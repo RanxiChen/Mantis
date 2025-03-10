@@ -2,6 +2,7 @@ package core.Mem
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.experimental.loadMemoryFromFileInline
 
 
 class IFMemIO extends Bundle{
@@ -20,24 +21,37 @@ class MemIO extends Bundle {
 
 class MemProbeIO extends Bundle {
   val addr = Input(UInt(64.W))
-  val data = Output(UInt(64.W))
+  val data = Output(UInt(8.W))
 }
 
-class MainMem(nkib:Int)(debug:Boolean=false) extends Module{
+class MainMem(nkib:Int)(HexPath:String = "misc/Mem/rom.hex")(debug:Boolean=false) extends Module{
   val io = IO(new Bundle {
     val IFPort = new IFMemIO
     val MemPort = new MemIO
     val ProbePort = if(debug) Some(new MemProbeIO) else None
   })
-  val content = RegInit(VecInit(Seq.fill(nkib*1024)(0.U(8.W)))) // byte-addressed 
-  // TODO: how about buye-address, but orgnized by word-address
+  //val content = RegInit(VecInit(Seq.fill(nkib*1024)(0.U(8.W)))) // byte-addressed 
+  // TODO: how about byte-address, but orgnized by word-address
+
+  val raw_hex_path = os.pwd / os.RelPath(HexPath)
+  println(s"rom path is :${raw_hex_path}")
+  val raw_hex_Seq = os.read.lines(raw_hex_path).map(_.grouped(2).toList.reverse).flatten.map(BigInt(_,16)&0xff)
+  println(s"rom size is :${raw_hex_Seq.length} bytes")
+
+  val content = RegInit(VecInit(raw_hex_Seq.map(_.U(8.W)) ++ Seq.fill(nkib*1024-raw_hex_Seq.length)(0.U(8.W)) ) )
+  val realWidth = math.ceil(math.log(nkib*1024)/math.log(2)).toInt
+
 
   //DebugPort
 
-  if(debug) {io.ProbePort.get := content(io.ProbePort.get.addr)}
+  val probe_addr = Wire(UInt(realWidth.W))
+  if(debug){
+    probe_addr := io.ProbePort.get.addr(realWidth-1,0)
+    io.ProbePort.get.data := content(probe_addr)
+  }
 
   //IF read
-  val valid_IF_addr = Mux(io.IFPort.addr(1,0) === 0.U && io.IFPort.addr +3.U <= (nkib*1024).U, io.IFPort.addr,0.U)
+  val valid_IF_addr = Mux(io.IFPort.addr(1,0) === 0.U && io.IFPort.addr +3.U <= (nkib*1024).U, io.IFPort.addr(realWidth-1,0),0.U)
   io.IFPort.inst := content(valid_IF_addr +3.U) ##  content(valid_IF_addr + 2.U) ##  content(valid_IF_addr +1.U) ##  content(valid_IF_addr ) //little_endiant
   
   //Mem
@@ -61,8 +75,13 @@ class MainMem(nkib:Int)(debug:Boolean=false) extends Module{
     is("b000".U) {io.MemPort.rdata := leading_sign <<  8.U | valid_data}
   }*/
 
- val word_raw = Cat(Seq.tabulate(8)(i => content(io.MemPort.addr + (7-i).U))) //get 64-bits
- val load_sig = false.B
+ //TODO: no range check
+ val valid_mem_addr = Wire(UInt(realWidth.W))
+ valid_mem_addr := io.MemPort.addr(realWidth-1,0)
+ val word_raw = Cat(Seq.tabulate(8)(i => content(valid_mem_addr + (7-i).U))) //get 64-bits
+ val load_sig = Wire(Bool())
+ load_sig := false.B
+ io.MemPort.rdata := 0.U
   switch(io.MemPort.bfwd){
     is("b100".U){io.MemPort.rdata := word_raw}
     is("b010".U){
@@ -97,7 +116,7 @@ class MainMem(nkib:Int)(debug:Boolean=false) extends Module{
   val store_hw_index = io.MemPort.bfwd ## false.B
   for(i <- 0 until 8){
     when( (i.U <= store_hw_index) && io.MemPort.WE){
-      content(io.MemPort.addr + i.U) := io.MemPort.wdata((i+1)*8-1, i*8)
+      content(valid_mem_addr + i.U) := io.MemPort.wdata((i+1)*8-1, i*8)
     }
   }
 

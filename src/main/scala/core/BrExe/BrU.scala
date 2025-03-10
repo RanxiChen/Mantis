@@ -11,6 +11,7 @@ object BrOp {
   val Br_GE = 4.U(3.W)
   val Br_GEU = 5.U(3.W)
   val Br_USED = 6.U(3.W)
+  val Br_XXX = 0.U(3.W)
 }
 
 class BrU extends Module{

@@ -21,14 +21,14 @@ class DataPath_single extends Module {
   pc_4 := pcReg + 4.U
 
   val pc_imm = Wire(UInt(64.W))
-  val pc_jrl = Wire(UInt(64.W))
+  val pc_jlr = Wire(UInt(64.W))
   val pc_bru = Wire(UInt(64.W))
 
   pcReg := MuxCase(pc_4,
     IndexedSeq(
       (io.ctrl.pc_sel === Signal.PC_4  ) -> pc_4,
       (io.ctrl.pc_sel === Signal.PC_IMM) -> pc_imm,
-      (io.ctrl.pc_sel === Signal.PC_JRL) -> pc_jrl,
+      (io.ctrl.pc_sel === Signal.PC_JLR) -> pc_jlr,
       (io.ctrl.pc_sel === Signal.PC_BRU) -> pc_bru
     )
   )
@@ -97,31 +97,32 @@ class DataPath_single extends Module {
   alu_res := alu.io.out
 
   pc_imm := alu_res
-  pc_jrl := alu_res & ( Fill(63,true.B) ## false.B )
+  pc_jlr := alu_res & ( Fill(63,true.B) ## false.B )
   pc_bru := Mux(bru.io.taken, alu_res, pc_4)
 
   //Mem
 
   io.memory.addr := alu_res
-  io.memory.bfwd := io.ctrl.MemWidth
-  io.memory.sig := io.ctrl.MemSig
+  io.memory.bfwd := io.ctrl.mem_width
+  io.memory.sig := io.ctrl.mem_sig
   io.memory.wdata := rf.io.rs2_data
-  io.memory.WE := io.ctrl.MemWE
+  io.memory.WE := io.ctrl.mem_we
 
   //WriteBack
   val wb_data = Wire(UInt(64.W))
   wb_data := MuxCase(0.U,
     IndexedSeq(
-      (io.ctrl.RfSel === Signal.DATA_ALU ) -> alu_res,
-      (io.ctrl.RfSel === Signal.DATA_MEM ) -> io.memory.rdata,
-      (io.ctrl.RfSel === Signal.DATA_IMM ) -> immValue,
-      (io.ctrl.RfSel === Signal.DATA_PC4 ) -> pc_4,
-      (io.ctrl.RfSel === Signal.DATA_XXX ) -> 0.U
+      (io.ctrl.wb_sel === Signal.DATA_ALU ) -> alu_res,
+      (io.ctrl.wb_sel === Signal.DATA_MEM ) -> io.memory.rdata,
+      (io.ctrl.wb_sel === Signal.DATA_IMM ) -> immValue,
+      (io.ctrl.wb_sel === Signal.DATA_PC4 ) -> pc_4,
+      (io.ctrl.wb_sel === Signal.DATA_RS2 ) -> rf.io.rs2_data,
+      (io.ctrl.wb_sel === Signal.DATA_XXX ) -> 0.U
     )
   )
   rf.io.rd_addr := inst_rd
   rf.io.rd_data := wb_data
-  rf.io.W_enable := io.ctrl.RegWE
+  rf.io.W_enable := io.ctrl.wb_en
   
 
 }

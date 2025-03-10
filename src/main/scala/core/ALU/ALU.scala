@@ -17,6 +17,7 @@ object ALUOp {
   val OP_SLT = 8.U(4.W)
   val OP_SLTU = 9.U(4.W)
   val OP_USED = 10.U(4.W)
+  val OP_XXX = 0.U(4.W)
 }
 
 class ALU extends Module {
