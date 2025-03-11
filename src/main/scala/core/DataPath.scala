@@ -3,23 +3,23 @@ package core
 import chisel3._
 import chisel3.util._
 
+class RFProbeIO extends Bundle {
+  val content = Output(Vec(32,UInt(64.W)))
+}
 class DataPathIO(debug:Boolean=false) extends Bundle {
   val ctrl = Flipped(new CtrlIO)
   val fetch = Flipped(new core.Mem.IFMemIO)
   val memory = Flipped(new core.Mem.MemIO)
-  val rfporbe = if(debug)Some(new RFProbeIO) else None
+  val rfprobe = if(debug)Some(new RFProbeIO) else None
 }
 
-class RFProbeIO extends Bundle{
-  val addr = Input(UInt(5.W))
-  val data = Output(UInt(64.W))
-}
+
 class DataPath_single(debug:Boolean=false) extends Module {
-  val io = IO(new DataPathIO)
+  val io = IO(new DataPathIO(debug))
   val rf = Module(new core.RegFile.RegFile(debug))
   val alu = Module(new core.ALU.ALU)
   if(debug){
-    (io.rfporbe.get).data := (rf.io.content.get)(io.rfporbe.get.addr)
+    io.rfprobe.get.content <> rf.io.content.get
   }
   
   //PC
@@ -32,7 +32,8 @@ class DataPath_single(debug:Boolean=false) extends Module {
   val pc_jlr = Wire(UInt(64.W))
   val pc_bru = Wire(UInt(64.W))
 
-  pcReg := MuxCase(pc_4,
+  val pc_NextWire = Wire(UInt(64.W))
+  pc_NextWire := MuxCase(pc_4,
     IndexedSeq(
       (io.ctrl.pc_sel === Signal.PC_4  ) -> pc_4,
       (io.ctrl.pc_sel === Signal.PC_IMM) -> pc_imm,
@@ -40,7 +41,10 @@ class DataPath_single(debug:Boolean=false) extends Module {
       (io.ctrl.pc_sel === Signal.PC_BRU) -> pc_bru
     )
   )
-  println(f"PC = ${pcReg.litValue}%016x")
+
+  pcReg := pc_NextWire
+  printf("PC = 0x%x\n",pcReg)
+  printf("[INFO] pc_next = %x\n",pc_NextWire)
 
   //IF
   val inst = Wire(UInt(64.W))
@@ -48,7 +52,8 @@ class DataPath_single(debug:Boolean=false) extends Module {
   io.fetch.addr := pcReg
 
   io.ctrl.inst := inst
-  println(f"[IF] inst = ${inst.litValue}%08x")
+  printf("[IF] inst = %x\n",inst)
+
 
   //decode inst
   val inst_rs1 = Wire(UInt(5.W))
@@ -71,6 +76,8 @@ class DataPath_single(debug:Boolean=false) extends Module {
   val immValue = Wire(UInt(64.W))
   immValue := immgen.io.imm
   immgen.io.sel := io.ctrl.imm_sel
+  printf("[EXE] immValue = %x\n",immValue)
+  printf("[INFO] imm_sel = %x\n",io.ctrl.imm_sel)
 
   //Exe
   val alu_src1_data = Wire(UInt(64.W))
@@ -83,7 +90,7 @@ class DataPath_single(debug:Boolean=false) extends Module {
       (io.ctrl.alu_src1 === Signal.A_XXX ) -> 0.U
     )
   )
-  println(f"[EXE] alu_src1_data = ${alu_src1_data.litValue}%016x")
+  printf("[EXE] alu_src1_data = %x\n",alu_src1_data)
 
   alu_src2_data := MuxCase(0.U,
     IndexedSeq(
@@ -93,7 +100,7 @@ class DataPath_single(debug:Boolean=false) extends Module {
       (io.ctrl.alu_src2 === Signal.B_XXX ) -> 0.U
     )
   )
-  println(f"[EXE] alu_src2_data = ${alu_src2_data.litValue}%016x")
+  printf("[EXE] alu_src2_data = %x\n",alu_src2_data)
 
   alu.io.src1 := alu_src1_data
   alu.io.src2 := alu_src2_data
@@ -107,7 +114,7 @@ class DataPath_single(debug:Boolean=false) extends Module {
 
   val alu_res = Wire(UInt(64.W))
   alu_res := alu.io.out
-  println(f"[EXE] alu_res = ${alu_res.litValue}%016x")
+  printf("[EXE] alu_res = %x\n",alu_res)
 
   pc_imm := alu_res
   pc_jlr := alu_res & ( Fill(63,true.B) ## false.B )
@@ -120,11 +127,11 @@ class DataPath_single(debug:Boolean=false) extends Module {
   io.memory.sig := io.ctrl.mem_sig
   io.memory.wdata := rf.io.rs2_data
   io.memory.WE := io.ctrl.mem_we
-  println(f"[MEM] addr = ${io.memory.addr.litValue}%016x")
-  println(f"[MEM] wdata = ${io.memory.wdata.litValue}%016x")
-  println(f"[MEM] WE = ${io.memory.WE.litValue}")
-  println(f"[MEM] sig = ${io.memory.sig.litValue}")
-  println(f"[MEM] bfwd = ${io.memory.bfwd.litValue}")
+  if(debug){
+    printf("[MEM] addr = %x\n",io.memory.addr)
+    printf("[MEM] wdata = %x\n",io.memory.wdata)
+    printf("[MEM] WE =  %x | sig = %x | bfwd = %x\n",io.memory.WE,io.memory.sig,io.memory.bfwd)
+  }
 
   //WriteBack
   val wb_data = Wire(UInt(64.W))
@@ -141,8 +148,9 @@ class DataPath_single(debug:Boolean=false) extends Module {
   rf.io.rd_addr := inst_rd
   rf.io.rd_data := wb_data
   rf.io.W_enable := io.ctrl.wb_en
-  println(f"[WB] rd_addr = ${rf.io.rd_addr.litValue}%016x")
-  println(f"[WB] wb_data = ${wb_data.litValue}%016x")
-  println(f"[WB] W_enable = ${io.ctrl.wb_en.litValue}")
+  
+  if(debug){
+    printf("[WB] Write %d to x%x, with en:%x\n",wb_data,rf.io.rd_addr,io.ctrl.wb_en)
+  }
 
 }

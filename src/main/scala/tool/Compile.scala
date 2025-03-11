@@ -80,15 +80,17 @@ object CC{
       val bit2421 = (imm & 0x0000001E) >> 1
       bit31 << 31 | bit1912 << 12 | bit20 << 20 | bit3025 << 25 | bit2421 << 21
     }
+    import tool.Instrs.ISA
 
     def CC(inst:String,imm_type:String, rd:Int =0,rs1:Int =0,rs2:Int =0,imm:Int=0)={
-      addrd(rd) + addsrc1(rs1) + addsrc2(rs2) + (
+      ISA(inst) +addrd(rd) + addsrc1(rs1) + addsrc2(rs2) + (
         imm_type match{
           case "i" => addimmI(imm)
           case "u" => addimmU(imm)
           case "s" => addimmS(imm)
           case "b" => addimmB(imm)
           case "j" => addimmJ(imm)
+          case "r" => 0
         }
       )
         }

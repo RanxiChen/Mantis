@@ -44,8 +44,9 @@ class MainMem(nkib:Int)(HexPath:String = "misc/Mem/rom.hex")(debug:Boolean=false
 
   //DebugPort
 
-  val probe_addr = Wire(UInt(realWidth.W))
   if(debug){
+    val probe_addr = Wire(UInt(realWidth.W))
+    probe_addr := 0.U
     probe_addr := io.ProbePort.get.addr(realWidth-1,0)
     io.ProbePort.get.data := content(probe_addr)
   }

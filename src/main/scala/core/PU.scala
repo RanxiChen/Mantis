@@ -15,12 +15,12 @@ class single_cycleRV64Ip_PU(main_memsize:Int,rom_path:String = "misc/Mem/rom.hex
     val port = if(debug)Some(new PUProbeIO) else None
   })
   val main_mem = Module(new core.Mem.MainMem(main_memsize)(rom_path)(debug))
-  val datapath = Module(new core.DataPath_single)
+  val datapath = Module(new core.DataPath_single(debug))
   val ctrl = Module(new core.CtrlU_RV64I )
 
   if(debug){
-    main_mem.io.ProbePort.get <> io.port.get
-    datapath.io.rfporbe.get <> io.port.get.rfPort
+    main_mem.io.ProbePort.get <> io.port.get.memPort
+    datapath.io.rfprobe.get <> io.port.get.rfPort
   }
 
   datapath.io.memory <> main_mem.io.MemPort
