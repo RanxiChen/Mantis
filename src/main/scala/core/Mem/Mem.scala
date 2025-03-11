@@ -112,10 +112,13 @@ class MainMem(nkib:Int)(HexPath:String = "misc/Mem/rom.hex")(debug:Boolean=false
   }
 
   //Mem write
+
+  val bytesToWrite = Wire(UInt(4.W))
+  bytesToWrite := Mux(io.MemPort.bfwd === "b000".U,"b0001".U,io.MemPort.bfwd ## false.B)
   
   val store_hw_index = io.MemPort.bfwd ## false.B
   for(i <- 0 until 8){
-    when( (i.U <= store_hw_index) && io.MemPort.WE){
+    when( (i.U < bytesToWrite) && io.MemPort.WE){
       content(valid_mem_addr + i.U) := io.MemPort.wdata((i+1)*8-1, i*8)
     }
   }

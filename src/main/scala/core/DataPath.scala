@@ -32,6 +32,7 @@ class DataPath_single extends Module {
       (io.ctrl.pc_sel === Signal.PC_BRU) -> pc_bru
     )
   )
+  println(f"PC = ${pcReg.litValue}%016x")
 
   //IF
   val inst = Wire(UInt(64.W))
@@ -39,6 +40,7 @@ class DataPath_single extends Module {
   io.fetch.addr := pcReg
 
   io.ctrl.inst := inst
+  println(f"[IF] inst = ${inst.litValue}%08x")
 
   //decode inst
   val inst_rs1 = Wire(UInt(5.W))
@@ -73,6 +75,7 @@ class DataPath_single extends Module {
       (io.ctrl.alu_src1 === Signal.A_XXX ) -> 0.U
     )
   )
+  println(f"[EXE] alu_src1_data = ${alu_src1_data.litValue}%016x")
 
   alu_src2_data := MuxCase(0.U,
     IndexedSeq(
@@ -82,6 +85,7 @@ class DataPath_single extends Module {
       (io.ctrl.alu_src2 === Signal.B_XXX ) -> 0.U
     )
   )
+  println(f"[EXE] alu_src2_data = ${alu_src2_data.litValue}%016x")
 
   alu.io.src1 := alu_src1_data
   alu.io.src2 := alu_src2_data
@@ -95,6 +99,7 @@ class DataPath_single extends Module {
 
   val alu_res = Wire(UInt(64.W))
   alu_res := alu.io.out
+  println(f"[EXE] alu_res = ${alu_res.litValue}%016x")
 
   pc_imm := alu_res
   pc_jlr := alu_res & ( Fill(63,true.B) ## false.B )
@@ -107,6 +112,11 @@ class DataPath_single extends Module {
   io.memory.sig := io.ctrl.mem_sig
   io.memory.wdata := rf.io.rs2_data
   io.memory.WE := io.ctrl.mem_we
+  println(f"[MEM] addr = ${io.memory.addr.litValue}%016x")
+  println(f"[MEM] wdata = ${io.memory.wdata.litValue}%016x")
+  println(f"[MEM] WE = ${io.memory.WE.litValue}")
+  println(f"[MEM] sig = ${io.memory.sig.litValue}")
+  println(f"[MEM] bfwd = ${io.memory.bfwd.litValue}")
 
   //WriteBack
   val wb_data = Wire(UInt(64.W))
@@ -123,6 +133,8 @@ class DataPath_single extends Module {
   rf.io.rd_addr := inst_rd
   rf.io.rd_data := wb_data
   rf.io.W_enable := io.ctrl.wb_en
-  
+  println(f"[WB] rd_addr = ${rf.io.rd_addr.litValue}%016x")
+  println(f"[WB] wb_data = ${wb_data.litValue}%016x")
+  println(f"[WB] W_enable = ${io.ctrl.wb_en.litValue}")
 
 }
