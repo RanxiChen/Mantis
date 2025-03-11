@@ -8,8 +8,9 @@ import chisel3.simulator.EphemeralSimulator._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 
-class MemPorbePortReadSpec extends AnyFreeSpec with Matchers {
+class MemProbePortReadSpec extends AnyFreeSpec with Matchers {
   "test read by ProbePort" in {
+    tool.HexProcess.generateSeqHex()
     simulate(new MainMem(1)()(true)) { dut =>
       //reset
       dut.reset.poke(true.B)
@@ -32,6 +33,7 @@ class MemPorbePortReadSpec extends AnyFreeSpec with Matchers {
 }
 class MemIFPortReadSpec extends AnyFreeSpec with Matchers {
   "test read by IFPort" in {
+    tool.HexProcess.generateSeqHex()
     simulate(new MainMem(1)()(true)) { dut =>
       //reset
       dut.reset.poke(true.B)
@@ -53,6 +55,7 @@ class MemIFPortReadSpec extends AnyFreeSpec with Matchers {
 
 class MemMemPortReadNoSigSpec extends AnyFreeSpec with Matchers {
   "test read by MemPort without sig" in {
+    tool.HexProcess.generateSeqHex()
     simulate(new MainMem(1)()(true)) { dut =>
       //reset
       dut.reset.poke(true.B)
@@ -193,6 +196,7 @@ class MemMemPortReadSigSpec extends AnyFreeSpec with Matchers {
 
 
 class MemPortReadWriteSpec extends AnyFreeSpec with Matchers {
+  tool.HexProcess.generateSeqHex()
   
   "MemPort should correctly handle reads and writes" - {
     

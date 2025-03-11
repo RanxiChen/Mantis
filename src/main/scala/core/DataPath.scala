@@ -3,16 +3,24 @@ package core
 import chisel3._
 import chisel3.util._
 
-class DataPathIO extends Bundle {
+class DataPathIO(debug:Boolean=false) extends Bundle {
   val ctrl = Flipped(new CtrlIO)
   val fetch = Flipped(new core.Mem.IFMemIO)
   val memory = Flipped(new core.Mem.MemIO)
+  val rfporbe = if(debug)Some(new RFProbeIO) else None
 }
 
-class DataPath_single extends Module {
+class RFProbeIO extends Bundle{
+  val addr = Input(UInt(5.W))
+  val data = Output(UInt(64.W))
+}
+class DataPath_single(debug:Boolean=false) extends Module {
   val io = IO(new DataPathIO)
-  val rf = Module(new core.RegFile.RegFile(true))
+  val rf = Module(new core.RegFile.RegFile(debug))
   val alu = Module(new core.ALU.ALU)
+  if(debug){
+    (io.rfporbe.get).data := (rf.io.content.get)(io.rfporbe.get.addr)
+  }
   
   //PC
   val pcReg = RegInit(0.U(64.W))

@@ -13,7 +13,7 @@ object CC{
         require((rs2>=0)&&(rs2<=31))
         rs2 << 20
     }
-    def addimm(imm:Int):BigInt={
+    def addimmI(imm:Int):BigInt={
         require((imm >= -2048) && (imm <= 2047))
         if(imm >=0){
             imm << 20
@@ -21,31 +21,75 @@ object CC{
             BigInt(imm.toHexString.takeRight(3),16) << 20
         }
     }
-    val ISA:Map[String,BigInt] = Map(
-        "add"   -> BigInt("00000000000000000000000000110011",2),
-        "sub"   -> BigInt("01000000000000000000000000110011",2),
-        "sll"   -> BigInt("00000000000000000001000000110011",2),
-        "xor"   -> BigInt("00000000000000000100000000110011",2),
-        "srl"   -> BigInt("00000000000000000101000000110011",2),
-        "sra"   -> BigInt("01000000000000000101000000110011",2),
-        "or"    -> BigInt("00000000000000000110000000110011",2),
-        "and"   -> BigInt("00000000000000000111000000110011",2),
-        "slt"   -> BigInt("00000000000000000010000000110011",2),
-        "sltu"  -> BigInt("00000000000000000011000000110011",2),
-        "addi"  -> BigInt("00000000000000000000000000010011",2),
-        "xori"  -> BigInt("00000000000000000100000000010011",2),
-        "ori"   -> BigInt("00000000000000000110000000010011",2),
-        "andi"  -> BigInt("00000000000000000111000000010011",2),
-        "slli"  -> BigInt("00000000000000000001000000010011",2),
-        "srai"  -> BigInt("01000000000000000101000000010011",2),
-        "slti"  -> BigInt("00000000000000000010000000010011",2),
-        "sltiu" -> BigInt("00000000000000000011000000010011",2)
 
-    )
-    def CCr(insttemplate:String,rd:Int,rs1:Int,rs2:Int):BigInt={
-        ISA(insttemplate) + addrd(rd) + addsrc1(rs1) + addsrc2(rs2)
+    def addimmU(imm:Int):BigInt ={
+      require( (imm & 0xFFF) == 0 )
+      val immu = imm &0xFFFFF000
+      immu << 12
     }
-    def CCi(insttemplate:String,rd:Int,rs1:Int,imm:Int):BigInt={
-        ISA(insttemplate) + addrd(rd) + addsrc1(rs1) + addimm(imm)
+
+    def addimmS(imm:Int):BigInt ={
+      val inst31 = imm & 0xFFFFF800
+      var bit31 = 0
+      if(inst31 == 0xFFFFF800){
+        bit31 = 1
+      }else if(inst31 == 0){
+        bit31 = 0
+      }else{
+        throw new Exception("addimmS error")
+      }
+
+      val bit3025 = ( imm & 0x7E0 ) >>> 5
+      val bit1108 = ( imm & 0x1E) >>> 1
+      val bit7 = imm & 0x1
+      bit31 << 31 | bit3025 << 25 | bit1108 << 8 | bit7 << 7
     }
+
+    def addimmB(imm:Int):BigInt={
+      require((imm & 0x1) == 0)
+      val inst31 = imm & 0xFFFFF000
+      var bit31 = 0
+      if(inst31 == 0xFFFFF000){
+        bit31 = 1
+      }else if(inst31 == 0){
+        bit31 = 0
+      }else{
+        throw new Exception("addimmB error")
+      }
+
+      val bit3025 = ( imm & 0x7E0 ) >>> 5
+      val bit1108 = ( imm & 0x1E) >>> 1
+      val bit7 = (imm & 0xFFFFF800) >>> 11
+      bit31 << 31 | bit3025 << 25 | bit7 << 7 | bit1108 << 8
+    }
+
+    def addimmJ(imm:Int):BigInt={
+      require((imm & 0x1) == 0)
+      val inst31 = imm & 0xFFF00000
+      var bit31 = 0
+      if(inst31 == 0xFFF00000){
+        bit31 = 1
+      } else if(inst31 == 0){
+        bit31 = 0
+      }else{
+        throw new Exception("addimmJ error")
+      }
+      val bit1912 = ( imm & 0x000FF000 ) >>> 12
+      val bit20 = (imm & 0x00000800) >> 11
+      val bit3025 = (imm&0x000007E0) >> 5
+      val bit2421 = (imm & 0x0000001E) >> 1
+      bit31 << 31 | bit1912 << 12 | bit20 << 20 | bit3025 << 25 | bit2421 << 21
+    }
+
+    def CC(inst:String,imm_type:String, rd:Int =0,rs1:Int =0,rs2:Int =0,imm:Int=0)={
+      addrd(rd) + addsrc1(rs1) + addsrc2(rs2) + (
+        imm_type match{
+          case "i" => addimmI(imm)
+          case "u" => addimmU(imm)
+          case "s" => addimmS(imm)
+          case "b" => addimmB(imm)
+          case "j" => addimmJ(imm)
+        }
+      )
+        }
 }
