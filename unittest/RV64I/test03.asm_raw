@@ -1,0 +1,45 @@
+0:  addi x2,x2,-48
+4:  sd x1,40(x2)
+8:  sd x8,32(x2)
+c:  addi x8,x2,48
+10:  sw x0,-32(x8)
+14:  addi x15,x0,10
+18:  sw x15,-36(x8)
+1c:  lw x15,-32(x8)
+20:  sraiw x15,x15,0x5
+24:  sw x15,-40(x8)
+28:  addi x15,x0,20
+2c:  sw x15,-20(x8)
+30:  addi x15,x0,-10
+34:  sw x15,-24(x8)
+38:  lw x15,-40(x8)
+3c:  addi x14,x15,0
+40:  lw x15,-32(x8)
+44:  addiw x14,x14,0
+48:  addiw x15,x15,0
+4c:  bne x14,x15,5c <main+0x5c>
+50:  addi x15,x0,3
+54:  sw x15,-20(x8)
+58:  jal x0,64 <main+0x64>
+5c:  addi x15,x0,7
+60:  sw x15,-20(x8)
+64:  sw x0,-28(x8)
+68:  jal x0,8c <main+0x8c>
+6c:  lw x15,-24(x8)
+70:  addi x14,x15,0
+74:  lw x15,-28(x8)
+78:  addw x15,x14,x15
+7c:  sw x15,-24(x8)
+80:  lw x15,-28(x8)
+84:  addiw x15,x15,1
+88:  sw x15,-28(x8)
+8c:  lw x15,-28(x8)
+90:  lw x14,-20(x8)
+94:  addiw x14,x14,0
+98:  bgeu x14,x15,6c <main+0x6c>
+9c:  addi x15,x0,0
+a0:  addi x10,x15,0
+a4:  ld x1,40(x2)
+a8:  ld x8,32(x2)
+ac:  addi x2,x2,48
+b0:  jalr x0,0(x1)

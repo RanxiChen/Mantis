@@ -36,3 +36,7 @@ object PU_RV64I_V extends App{
     "-strip-debug-info")
   )
 }
+
+class PU_RV64I_s (main_memsize:Int,rom_path:String = "conf/rom.hex",debug:Boolean=false,reginit:String = "conf/reg.ini") extends Module{
+    val main_mem = Module(new core.Mem.MainMem(main_memsize)(rom_path)(debug))
+} 

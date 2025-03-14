@@ -22,23 +22,8 @@ class RegFileIO(val debug:Boolean = false) extends Bundle {
 class RegFile(val debug:Boolean = false) extends Module {
   val io = IO(new RegFileIO(debug))
   val regfile = RegInit(VecInit(Seq.fill(32)(0.U(64.W))))
-  //try to escape undefined behave
-  /*
-  when(io.rs1_addr === 0.U){
-    io.rs1_data := 0.U
-  }.elsewhen(io.W_enable && io.rs1_addr === io.rd_addr){
-    io.rs1_data := io.rd_data
-  }.otherwise{
-    io.rs1_data := regfile(io.rs1_addr)
-  }
-  when(io.rs2_addr === 0.U){
-    io.rs2_data := 0.U
-  }.elsewhen(io.W_enable && io.rs2_addr === io.rd_addr){
-    io.rs2_data := io.rd_data
-  }.otherwise{
-    io.rs2_data := regfile(io.rs2_addr)
-  }
-  */
+
+
   io.rs1_data := regfile(io.rs1_addr)
   io.rs2_data := regfile(io.rs2_addr)
 

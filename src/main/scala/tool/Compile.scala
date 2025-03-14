@@ -23,9 +23,8 @@ object CC{
     }
 
     def addimmU(imm:Int):BigInt ={
-      require( (imm & 0xFFF) == 0 )
       val immu = imm &0xFFFFF000
-      immu << 12
+      BigInt(immu) << 12
     }
 
     def addimmS(imm:Int):BigInt ={
@@ -82,16 +81,16 @@ object CC{
     }
     import tool.Instrs.ISA
 
-    def CC(inst:String,imm_type:String, rd:Int =0,rs1:Int =0,rs2:Int =0,imm:Int=0)={
-      ISA(inst) +addrd(rd) + addsrc1(rs1) + addsrc2(rs2) + (
-        imm_type match{
+    def CC(inst:String,rd:Int =0,rs1:Int =0,rs2:Int =0,imm:Int=0)={
+      val (inst_base,inst_type) = ISA(inst)
+      inst_base + addrd(rd) + addsrc1(rs1) + addsrc2(rs2) + (
+        inst_type match {
           case "i" => addimmI(imm)
-          case "u" => addimmU(imm)
           case "s" => addimmS(imm)
           case "b" => addimmB(imm)
-          case "j" => addimmJ(imm)
-          case "r" => 0
+          case "u" => addimmU(imm)
+          case  _  => 0
         }
-      )
-        }
+        )
+    }
 }

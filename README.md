@@ -8,7 +8,6 @@
 
 ## tools required
 1. [riscv-gnu-toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain)
-Now, I use elf version,nighty release.
 
 ## Notes
 1. At this time, using big 8-bits array as main memory, every address refer to 8-bits data.
