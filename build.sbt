@@ -13,6 +13,8 @@ lazy val root = (project in file("."))
       "org.chipsalliance" %% "chisel" % chiselVersion,
       "org.scalatest" %% "scalatest" % "3.2.16" % "test",
       "com.lihaoyi" %% "os-lib" % "0.11.4" ,
+      "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
+      "edu.berkeley.cs" %% "chiseltest" % "6.0.0" % "test",
     ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",

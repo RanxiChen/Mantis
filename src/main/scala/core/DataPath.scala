@@ -3,24 +3,34 @@ package core
 import chisel3._
 import chisel3.util._
 
-class RFProbeIO extends Bundle {
-  val content = Output(Vec(32,UInt(64.W)))
-}
-class DataPathIO(debug:Boolean=false) extends Bundle {
+
+class DataPathIO extends Bundle {
   val ctrl = Flipped(new CtrlIO)
   val fetch = Flipped(new core.Mem.IFMemIO)
   val memory = Flipped(new core.Mem.MemIO)
-  val rfprobe = if(debug)Some(new RFProbeIO) else None
+}
+
+class DataPathProbe extends Bundle {
+  val rf = new core.RFProbe
+  val alu_src1 = Output(UInt(64.W))
+  val alu_src2 = Output(UInt(64.W))
+  val alu_res = Output(UInt(64.W))
+  val pc = Output(UInt(64.W))
+  val inst = Output(UInt(32.W))
+  val imm = Output(UInt(64.W))
+  val wb_data = Output(UInt(64.W))
 }
 
 
-class DataPath_single(debug:Boolean=false) extends Module {
-  val io = IO(new DataPathIO(debug))
-  val rf = Module(new core.RegFile.RegFile(debug))
+class DataPath(debug:Boolean=false,rfinit:String = "conf/reg.ini") extends Module {
+  val io = IO(new Bundle{
+    val dpIO = new DataPathIO
+    val probe = if(debug) Some(new DataPathProbe) else None
+  })
+  val rf = Module(new core.RegFileModule(debug,rfinit))
   val alu = Module(new core.ALU.ALU)
-  if(debug){
-    io.rfprobe.get.content <> rf.io.content.get
-  }
+
+  if(debug) {io.probe.get.rf <> rf.io.probe.get}
   
   //PC
   val pcReg = RegInit(0.U(64.W))
@@ -35,24 +45,26 @@ class DataPath_single(debug:Boolean=false) extends Module {
   val pc_NextWire = Wire(UInt(64.W))
   pc_NextWire := MuxCase(pc_4,
     IndexedSeq(
-      (io.ctrl.pc_sel === Signal.PC_4  ) -> pc_4,
-      (io.ctrl.pc_sel === Signal.PC_IMM) -> pc_imm,
-      (io.ctrl.pc_sel === Signal.PC_JLR) -> pc_jlr,
-      (io.ctrl.pc_sel === Signal.PC_BRU) -> pc_bru
+      (io.dpIO.ctrl.pc_sel === Signal.PC_4  ) -> pc_4,
+      (io.dpIO.ctrl.pc_sel === Signal.PC_IMM) -> pc_imm,
+      (io.dpIO.ctrl.pc_sel === Signal.PC_JLR) -> pc_jlr,
+      (io.dpIO.ctrl.pc_sel === Signal.PC_BRU) -> pc_bru
     )
   )
+  if(debug){io.probe.get.pc := pcReg}
 
   pcReg := pc_NextWire
   printf("PC = 0x%x\n",pcReg)
-  printf("[INFO] pc_next = %x\n",pc_NextWire)
 
   //IF
   val inst = Wire(UInt(64.W))
-  inst := io.fetch.inst
-  io.fetch.addr := pcReg
+  inst := io.dpIO.fetch.inst
+  io.dpIO.fetch.addr := pcReg
 
-  io.ctrl.inst := inst
+  io.dpIO.ctrl.inst := inst
   printf("[IF] inst = %x\n",inst)
+
+  if(debug){io.probe.get.inst := inst}
 
 
   //decode inst
@@ -67,17 +79,19 @@ class DataPath_single(debug:Boolean=false) extends Module {
   //RegRead, prepare for alu
   
 
-  rf.io.rs1_addr := inst_rs1
-  rf.io.rs2_addr := inst_rs2
+  rf.io.rf.rs1_addr := inst_rs1
+  rf.io.rf.rs2_addr := inst_rs2
 
   val immgen = Module(new ImmGen_RV64I)
   immgen.io.inst := inst
 
   val immValue = Wire(UInt(64.W))
   immValue := immgen.io.imm
-  immgen.io.sel := io.ctrl.imm_sel
+  immgen.io.sel := io.dpIO.ctrl.imm_sel
   printf("[EXE] immValue = %x\n",immValue)
-  printf("[INFO] imm_sel = %x\n",io.ctrl.imm_sel)
+  printf("[INFO] imm_sel = %x\n",io.dpIO.ctrl.imm_sel)
+
+  if(debug){io.probe.get.imm := immValue}
 
   //Exe
   val alu_src1_data = Wire(UInt(64.W))
@@ -85,32 +99,38 @@ class DataPath_single(debug:Boolean=false) extends Module {
 
   alu_src1_data := MuxCase(0.U,
     IndexedSeq(
-      (io.ctrl.alu_src1 === Signal.A_RS1) -> rf.io.rs1_data,
-      (io.ctrl.alu_src1 === Signal.A_PC ) -> pcReg,
-      (io.ctrl.alu_src1 === Signal.A_XXX ) -> 0.U
+      (io.dpIO.ctrl.alu_src1 === Signal.A_RS1) -> rf.io.rf.rs1_data,
+      (io.dpIO.ctrl.alu_src1 === Signal.A_PC ) -> pcReg,
+      (io.dpIO.ctrl.alu_src1 === Signal.A_XXX ) -> 0.U
     )
   )
   printf("[EXE] alu_src1_data = %x\n",alu_src1_data)
 
   alu_src2_data := MuxCase(0.U,
     IndexedSeq(
-      (io.ctrl.alu_src2 === Signal.B_RS2) -> rf.io.rs2_data,
-      (io.ctrl.alu_src2 === Signal.B_IMM) -> immValue,
-      (io.ctrl.alu_src2 === Signal.B_PC ) -> pcReg,
-      (io.ctrl.alu_src2 === Signal.B_XXX ) -> 0.U
+      (io.dpIO.ctrl.alu_src2 === Signal.B_RS2) -> rf.io.rf.rs2_data,
+      (io.dpIO.ctrl.alu_src2 === Signal.B_IMM) -> immValue,
+      (io.dpIO.ctrl.alu_src2 === Signal.B_PC ) -> pcReg,
+      (io.dpIO.ctrl.alu_src2 === Signal.B_XXX ) -> 0.U
     )
   )
   printf("[EXE] alu_src2_data = %x\n",alu_src2_data)
 
   alu.io.src1 := alu_src1_data
   alu.io.src2 := alu_src2_data
-  alu.io.op := io.ctrl.alu_op
+  alu.io.op := io.dpIO.ctrl.alu_op
+
+  if(debug){
+    io.probe.get.alu_src1 := alu_src1_data
+    io.probe.get.alu_src2 := alu_src2_data
+    io.probe.get.alu_res := alu.io.out
+  }
 
   //BrU
   val bru = Module(new BrExe.BrU)
-  bru.io.rs1 := rf.io.rs1_data
-  bru.io.rs2 := rf.io.rs2_data
-  bru.io.BrOp := io.ctrl.bru_op
+  bru.io.rs1 := rf.io.rf.rs1_data
+  bru.io.rs2 := rf.io.rf.rs2_data
+  bru.io.BrOp := io.dpIO.ctrl.bru_op
 
   val alu_res = Wire(UInt(64.W))
   alu_res := alu.io.out
@@ -122,35 +142,36 @@ class DataPath_single(debug:Boolean=false) extends Module {
 
   //Mem
 
-  io.memory.addr := alu_res
-  io.memory.bfwd := io.ctrl.mem_width
-  io.memory.sig := io.ctrl.mem_sig
-  io.memory.wdata := rf.io.rs2_data
-  io.memory.WE := io.ctrl.mem_we
+  io.dpIO.memory.addr := alu_res
+  io.dpIO.memory.bfwd := io.dpIO.ctrl.mem_width
+  io.dpIO.memory.sig := io.dpIO.ctrl.mem_sig
+  io.dpIO.memory.wdata := rf.io.rf.rs2_data
+  io.dpIO.memory.WE := io.dpIO.ctrl.mem_we
   if(debug){
-    printf("[MEM] addr = %x\n",io.memory.addr)
-    printf("[MEM] wdata = %x\n",io.memory.wdata)
-    printf("[MEM] WE =  %x | sig = %x | bfwd = %x\n",io.memory.WE,io.memory.sig,io.memory.bfwd)
+    printf("[MEM] addr = %x\n",io.dpIO.memory.addr)
+    printf("[MEM] wdata = %x\n",io.dpIO.memory.wdata)
+    printf("[MEM] WE =  %x | sig = %x | bfwd = %x\n",io.dpIO.memory.WE,io.dpIO.memory.sig,io.dpIO.memory.bfwd)
   }
 
   //WriteBack
   val wb_data = Wire(UInt(64.W))
   wb_data := MuxCase(0.U,
     IndexedSeq(
-      (io.ctrl.wb_sel === Signal.DATA_ALU ) -> alu_res,
-      (io.ctrl.wb_sel === Signal.DATA_MEM ) -> io.memory.rdata,
-      (io.ctrl.wb_sel === Signal.DATA_IMM ) -> immValue,
-      (io.ctrl.wb_sel === Signal.DATA_PC4 ) -> pc_4,
-      (io.ctrl.wb_sel === Signal.DATA_RS2 ) -> rf.io.rs2_data,
-      (io.ctrl.wb_sel === Signal.DATA_XXX ) -> 0.U
+      (io.dpIO.ctrl.wb_sel === Signal.DATA_ALU ) -> alu_res,
+      (io.dpIO.ctrl.wb_sel === Signal.DATA_MEM ) -> io.dpIO.memory.rdata,
+      (io.dpIO.ctrl.wb_sel === Signal.DATA_IMM ) -> immValue,
+      (io.dpIO.ctrl.wb_sel === Signal.DATA_PC4 ) -> pc_4,
+      (io.dpIO.ctrl.wb_sel === Signal.DATA_RS2 ) -> rf.io.rf.rs2_data,
+      (io.dpIO.ctrl.wb_sel === Signal.DATA_XXX ) -> 0.U
     )
   )
-  rf.io.rd_addr := inst_rd
-  rf.io.rd_data := wb_data
-  rf.io.W_enable := io.ctrl.wb_en
+  if(debug){io.probe.get.wb_data := wb_data}
+  rf.io.rf.rd_addr := inst_rd
+  rf.io.rf.rd_data := wb_data
+  rf.io.rf.W_enable := io.dpIO.ctrl.wb_en
   
   if(debug){
-    printf("[WB] Write %d to x%x, with en:%x\n",wb_data,rf.io.rd_addr,io.ctrl.wb_en)
+    printf("[WB] Write %d to x%x, with en:%x\n",wb_data,rf.io.rf.rd_addr,io.dpIO.ctrl.wb_en)
   }
 
 }
