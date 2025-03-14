@@ -54,7 +54,7 @@ class DataPath(debug:Boolean=false,rfinit:String = "conf/reg.ini") extends Modul
   if(debug){io.probe.get.pc := pcReg}
 
   pcReg := pc_NextWire
-  printf("PC = 0x%x\n",pcReg)
+  printf("[INFO] |PC = 0x%x|\n",pcReg)
 
   //IF
   val inst = Wire(UInt(64.W))
@@ -62,7 +62,7 @@ class DataPath(debug:Boolean=false,rfinit:String = "conf/reg.ini") extends Modul
   io.dpIO.fetch.addr := pcReg
 
   io.dpIO.ctrl.inst := inst
-  printf("[IF] inst = %x\n",inst)
+  printf("[IF]  |inst = 0x%x|\n",inst)
 
   if(debug){io.probe.get.inst := inst}
 
@@ -88,8 +88,8 @@ class DataPath(debug:Boolean=false,rfinit:String = "conf/reg.ini") extends Modul
   val immValue = Wire(UInt(64.W))
   immValue := immgen.io.imm
   immgen.io.sel := io.dpIO.ctrl.imm_sel
-  printf("[EXE] immValue = %x\n",immValue)
-  printf("[INFO] imm_sel = %x\n",io.dpIO.ctrl.imm_sel)
+  printf("[EXE] |immValue = 0x%x|\n",immValue)
+  printf("[INFO]|imm_sel = %x|\n",io.dpIO.ctrl.imm_sel)
 
   if(debug){io.probe.get.imm := immValue}
 
@@ -104,7 +104,7 @@ class DataPath(debug:Boolean=false,rfinit:String = "conf/reg.ini") extends Modul
       (io.dpIO.ctrl.alu_src1 === Signal.A_XXX ) -> 0.U
     )
   )
-  printf("[EXE] alu_src1_data = %x\n",alu_src1_data)
+  printf("[EXE] |alu_src1_data = 0x%x|\n",alu_src1_data)
 
   alu_src2_data := MuxCase(0.U,
     IndexedSeq(
@@ -114,7 +114,7 @@ class DataPath(debug:Boolean=false,rfinit:String = "conf/reg.ini") extends Modul
       (io.dpIO.ctrl.alu_src2 === Signal.B_XXX ) -> 0.U
     )
   )
-  printf("[EXE] alu_src2_data = %x\n",alu_src2_data)
+  printf("[EXE] |alu_src2_data = 0x%x|\n",alu_src2_data)
 
   alu.io.src1 := alu_src1_data
   alu.io.src2 := alu_src2_data
@@ -134,7 +134,7 @@ class DataPath(debug:Boolean=false,rfinit:String = "conf/reg.ini") extends Modul
 
   val alu_res = Wire(UInt(64.W))
   alu_res := alu.io.out
-  printf("[EXE] alu_res = %x\n",alu_res)
+  printf("[EXE] |alu_res = %x|\n",alu_res)
 
   pc_imm := alu_res
   pc_jlr := alu_res & ( Fill(63,true.B) ## false.B )
@@ -148,9 +148,9 @@ class DataPath(debug:Boolean=false,rfinit:String = "conf/reg.ini") extends Modul
   io.dpIO.memory.wdata := rf.io.rf.rs2_data
   io.dpIO.memory.WE := io.dpIO.ctrl.mem_we
   if(debug){
-    printf("[MEM] addr = %x\n",io.dpIO.memory.addr)
-    printf("[MEM] wdata = %x\n",io.dpIO.memory.wdata)
-    printf("[MEM] WE =  %x | sig = %x | bfwd = %x\n",io.dpIO.memory.WE,io.dpIO.memory.sig,io.dpIO.memory.bfwd)
+    printf("[MEM] |addr = 0x%x|\n",io.dpIO.memory.addr)
+    printf("[MEM] |wdata = 0x%x|\n",io.dpIO.memory.wdata)
+    printf("[MEM] |WE =  %x | sig = %x | bfwd = %x|\n",io.dpIO.memory.WE,io.dpIO.memory.sig,io.dpIO.memory.bfwd)
   }
 
   //WriteBack
@@ -171,7 +171,7 @@ class DataPath(debug:Boolean=false,rfinit:String = "conf/reg.ini") extends Modul
   rf.io.rf.W_enable := io.dpIO.ctrl.wb_en
   
   if(debug){
-    printf("[WB] Write %d to x%x, with en:%x\n",wb_data,rf.io.rf.rd_addr,io.dpIO.ctrl.wb_en)
+    printf("[WB] |Write 0x%x to x%x, with en:%x|\n",wb_data,rf.io.rf.rd_addr,io.dpIO.ctrl.wb_en)
   }
 
 }

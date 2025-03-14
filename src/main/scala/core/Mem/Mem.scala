@@ -37,6 +37,7 @@ class MainMem(nkib:Int)(HexPath:String = "misc/Mem/rom.hex")(debug:Boolean=false
   println(s"rom path is :${raw_hex_path}")
   val raw_hex_Seq = os.read.lines(raw_hex_path).map(_.grouped(2).toList.reverse).flatten.map(BigInt(_,16)&0xff)
   println(s"rom size is :${raw_hex_Seq.length} bytes")
+  println("main_memory size is :"+nkib*1024+" bytes")
 
   val content = RegInit(VecInit(raw_hex_Seq.map(_.U(8.W)) ++ Seq.fill(nkib*1024-raw_hex_Seq.length)(0.U(8.W)) ) )
   val realWidth = math.ceil(math.log(nkib*1024)/math.log(2)).toInt
