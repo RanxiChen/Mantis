@@ -10,11 +10,11 @@ class PUProbe extends Bundle {
   val dpPort = new core.DataPathProbe
 }
 
-class RV64_PU(main_memsize:Int,rom_path:String = "misc/Mem/rom.hex",debug:Boolean=false,reginit:String="conf/reg.ini") extends Module{
+class RV64_PU(main_memsize:Int,rom_path:String = "misc/Mem/rom.hex",debug:Boolean=false,reginit:String="conf/reg.ini",hexmapfile:String="") extends Module{
   val io = IO(new Bundle{
     val port = if(debug)Some(new PUProbe) else None
   })
-  val main_mem = Module(new core.Mem.MainMem(main_memsize)(rom_path)(debug))
+  val main_mem = Module(new core.Mem.MainMem(main_memsize)(rom_path,HexMapFile=hexmapfile)(debug))
   val datapath = Module(new core.DataPath(debug,reginit))
   val ctrl = Module(new core.CtrlU_RV64I )
 

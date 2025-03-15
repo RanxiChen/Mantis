@@ -24,7 +24,7 @@ class MemProbeIO extends Bundle {
   val data = Output(UInt(8.W))
 }
 
-class MainMem(nkib:Int)(HexPath:String = "misc/Mem/rom.hex")(debug:Boolean=false) extends Module{
+class MainMem(nkib:Int)(HexPath:String = "misc/Mem/rom.hex",HexMapFile:String = "")(debug:Boolean=false) extends Module{
   val io = IO(new Bundle {
     val IFPort = new IFMemIO
     val MemPort = new MemIO
@@ -34,12 +34,20 @@ class MainMem(nkib:Int)(HexPath:String = "misc/Mem/rom.hex")(debug:Boolean=false
   // TODO: how about byte-address, but orgnized by word-address
 
   val raw_hex_path = os.pwd / os.RelPath(HexPath)
-  println(s"rom path is :${raw_hex_path}")
-  val raw_hex_Seq = os.read.lines(raw_hex_path).map(_.grouped(2).toList.reverse).flatten.map(BigInt(_,16)&0xff)
-  println(s"rom size is :${raw_hex_Seq.length} bytes")
+  //println(s"rom path is :${raw_hex_path}")
+  val raw_hex_Seq:Seq[BigInt] = os.read.lines(raw_hex_path).map(_.grouped(2).toList.reverse).flatten.map(BigInt(_,16)&0xff)
+  //println(s"rom size is :${raw_hex_Seq.length} bytes")
   println("main_memory size is :"+nkib*1024+" bytes")
+  var raw_mem_Seq :Seq[BigInt] = raw_hex_Seq ++ Seq.fill(nkib*1024-raw_hex_Seq.length)(0)
+  if(HexMapFile != ""){
+    val hexMap = tool.MemHex.hexmapfromfile(HexMapFile)
+    for((k,v) <- hexMap){
+      raw_mem_Seq = raw_mem_Seq.updated(k,BigInt(v))
+    }
+  }
 
-  val content = RegInit(VecInit(raw_hex_Seq.map(_.U(8.W)) ++ Seq.fill(nkib*1024-raw_hex_Seq.length)(0.U(8.W)) ) )
+  //val content = RegInit(VecInit(raw_hex_Seq.map(_.U(8.W)) ++ Seq.fill(nkib*1024-raw_hex_Seq.length)(0.U(8.W)) ) )
+  val content = RegInit(VecInit(raw_mem_Seq.map(_.U(8.W))) )
   val realWidth = math.ceil(math.log(nkib*1024)/math.log(2)).toInt
 
 

@@ -1,0 +1,184 @@
+@CYCLE 1
+PC == 0x4;
+ra == 0x12345000;
+x2 == 0x3ffc;
+x3 == 0x1800;
+@CYCLE 2
+sp == 0x1004;
+PC == 0x8;
+@CYCLE 3
+PC == 0xc;
+gp == 0x64;
+@CYCLE 4
+PC == 0x10;
+tp == 0x14;
+@CYCLE 5
+PC == 0x14;
+x5 == 0x2010;
+@CYCLE 6
+PC == 0x18;
+x5 == 0x2000;
+@CYCLE 7
+PC == 0x1c;
+x6 == 0x78;
+@CYCLE 8
+PC == 0x20;
+x7 == 0x50;
+@CYCLE 9
+PC == 0x24;
+x8 == 0x28;
+@CYCLE 10
+PC == 0x28;
+x9 == 0x3c;
+@CYCLE 11
+PC == 0x2c;
+x10 == 0x24;
+@CYCLE 12
+PC == 0x30;
+x11 == 0x2400000;
+@CYCLE 13
+PC == 0x34;
+x12 == 0x24;
+@CYCLE 14
+PC == 0x38;
+x12 == 0x24;
+@CYCLE 15
+PC == 0x3c;
+x14 == 0xa;
+@CYCLE 18
+PC == 0x60;
+a4 == 0xa;
+@CYCLE 19
+PC == 0x64;
+tp == 0xf;
+@CYCLE 20
+PC == 0x88;
+@CYCLE 21 
+PC == 0x8c;
+gp == 0x63;
+@CYCLE 22
+PC == 0x18;
+@CYCLE 23
+PC == 0x1c;
+t1 == 0x72;
+@ CYCLE 24
+PC == 0x20;
+t2 == 0x54;
+@ CYCLE 25
+PC == 0x24;
+s0 == 0x26;
+@CYCLE 26
+PC == 0x28;
+s1 == 0x2f;
+@CYCLE 27
+PC == 0x2c;
+a0 == 0x23;
+@CYCLE 32
+PC == 0x40;
+a4 == 0xa;
+@CYCLE 33
+PC == 0x44;
+a4 == 0xa;
+@CYCLE 34
+PC == 0x60;
+@CYCLE 35
+PC == 0x64;
+tp == 0xa;
+@CYCLE 36
+PC == 0x88;
+@CYCLE 37
+PC == 0x8c;
+gp == 0x62;
+@CYCLE 38
+PC == 0x18;
+@CYCLE 48
+PC == 0x40;
+@CYCLE 49
+PC == 0x44;
+@CYCLE 50
+PC == 0x60;
+@CYCLE 51
+PC == 0x64;
+tp == 0x5;
+@CYCLE 52
+PC == 0x88;
+@CYCLE 54
+PC == 0x18;
+gp == 0x61;
+@CYCLE 64
+PC == 0x40;
+@CYCLE 66
+PC == 0x60;
+@CYCLE 67
+PC == 0x64;
+tp == 0x0;
+@CYCLE 68
+PC == 0x88;
+@CYCLE 69
+PC == 0x8c;
+@CYCLE 70
+PC == 0x18;
+@CYCLE 84
+PC == 0x70;
+@CYCLE 97
+PC == 0x3c;
+@CYCLE 102
+PC == 0x70;
+@CYCLE 106
+PC == 0x18;
+@CYCLE 124
+PC == 0x18;
+@CYCLE 138
+PC == 0x70;
+@CYCLE 141
+PC == 0x8c;
+gp == 0x5c;
+@CYCLE 156
+PC == 0x70;
+@CYCLE 195
+PC == 0x8c;
+x3 == 0x59;
+@CYCLE 213
+PC == 0x8c;
+@CYCLE 231
+PC == 0x8c;
+x3 == 0x57;
+@CYCLE 249 
+PC == 0x8c;
+gp == 0x56;
+@CYCLE 717
+PC == 0x8c;
+gp == 0x3c;
+@CYCLE 825
+PC == 0x8c;
+gp == 0x36;
+@CYCLE 1041
+PC == 0x8c;
+gp == 0x2a;
+@CYCLE 1401
+PC == 0x8c;
+gp == 0x16;
+@CYCLE 1581
+PC == 0x8c;
+gp == 0xc;
+@CYCLE 1743
+PC == 0x8c;
+gp == 0x3;
+@CYCLE 1761
+PC == 0x8c;
+gp == 0x2;
+@CYCLE 1779
+PC == 0x8c;
+gp == 0x1;
+@CYCLE 1797
+PC == 0x8c;
+gp == 0x0;
+@CYCLE 1798
+PC == 0x90;
+gp == 0x0;
+@CYCLE 1799
+PC == 0x0;
+@CYCLE 1800
+PC == 0x4;
+@CYCLE 1801
+PC == 0x8;

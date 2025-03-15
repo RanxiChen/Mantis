@@ -11,7 +11,7 @@ import org.scalatest.matchers.must.Matchers
 class MemProbePortReadSpec extends AnyFreeSpec with Matchers {
   "test read by ProbePort" in {
     tool.HexProcess.generateSeqHex()
-    simulate(new MainMem(1)()(true)) { dut =>
+    simulate(new MainMem(1)(HexMapFile = "misc/Mem/rom.map")(true)) { dut =>
       //reset
       dut.reset.poke(true.B)
       dut.clock.step()
