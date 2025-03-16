@@ -61,10 +61,10 @@ PC == 0x18;
 @CYCLE 23
 PC == 0x1c;
 t1 == 0x72;
-@ CYCLE 24
+@CYCLE 24
 PC == 0x20;
 t2 == 0x54;
-@ CYCLE 25
+@CYCLE 25
 PC == 0x24;
 s0 == 0x26;
 @CYCLE 26

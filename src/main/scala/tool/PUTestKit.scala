@@ -68,5 +68,6 @@ object PUPort {
         }
     }
 
-
-
+object Test02TestSets extends App{
+    PUPort.testSetsfromFile("unittest/RV64/test02.ref").foreach{case (k,v) => println(k,v)}
+}
