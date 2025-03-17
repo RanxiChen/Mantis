@@ -3,7 +3,8 @@ package core
 import chisel3._
 import chisel3.util._
 import _root_.circt.stage.ChiselStage
-
+import chisel3.experimental.BundleLiterals._
+import chisel3.simulator.EphemeralSimulator._
 class CtrlIO extends Bundle {
   val inst = Input(UInt(32.W))
   val pc_sel = Output(UInt(2.W))
@@ -47,4 +48,24 @@ object CtrlU_V extends App {
     Array("--target-dir", "build/CtrlU"),
     firtoolOpts = Array("-disable-all-randomization","-strip-debug-info")
   )
+}
+
+object CtrlUInfo extends  App {
+  val inst = args(0)
+  println("inst: " + inst)
+  val raw_inst = BigInt(inst.substring(2),16)
+    simulate(new CtrlU_RV64I) { dut =>
+      dut.io.inst.poke(raw_inst.U)
+      println("pc_sel:" + dut.io.pc_sel.peek().litValue)
+      println("alu_src1:" + dut.io.alu_src1.peek().litValue)
+      println("alu_src2:" + dut.io.alu_src2.peek().litValue)
+      println("imm_sel:" + dut.io.imm_sel.peek().litValue)
+      println("alu_op:" + dut.io.alu_op.peek().litValue)
+      println("bru_op:" + dut.io.bru_op.peek().litValue)
+      println("mem_width:" + dut.io.mem_width.peek().litValue)
+      println("mem_sig:" + dut.io.mem_sig.peek().litValue)
+      println("mem_we:" + dut.io.mem_we.peek().litValue)
+      println("wb_sel:" + dut.io.wb_sel.peek().litValue)
+      println("wb_en:" + dut.io.wb_en.peek().litValue)
+    }
 }

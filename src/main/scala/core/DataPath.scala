@@ -148,7 +148,7 @@ class DataPath(debug:Boolean=false,rfinit:String = "conf/reg.ini") extends Modul
   io.dpIO.memory.wdata := rf.io.rf.rs2_data
   io.dpIO.memory.WE := io.dpIO.ctrl.mem_we
   if(debug){
-    printf("[MEM] |addr = 0x%x|\n",io.dpIO.memory.addr)
+    //printf("[MEM] |addr = 0x%x|\n",io.dpIO.memory.addr)
     printf("[MEM] |wdata = 0x%x|\n",io.dpIO.memory.wdata)
     printf("[MEM] |WE =  %x | sig = %x | bfwd = %x|\n",io.dpIO.memory.WE,io.dpIO.memory.sig,io.dpIO.memory.bfwd)
   }
