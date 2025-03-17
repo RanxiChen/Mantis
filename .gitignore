@@ -344,3 +344,4 @@ hs_err_pid*
 .vscode/
 tool/
 !tool/Makefile
+!src/main/scala/tool/
