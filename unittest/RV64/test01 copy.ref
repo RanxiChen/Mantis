@@ -1,0 +1,82 @@
+@CYCLE 1
+PC == 0x4;
+sp == 0x3fcc;
+gp == 0x1800;
+@CYCLE 4
+PC == 0x10;
+s0 == 0x3ffc;
+@CYCLE 6
+PC == 0x18;
+a5 == 0xa;
+@CYCLE 8
+PC == 0x20;
+@CYCLE 9
+PC == 0x24;
+a5 == 0x0;
+@CYCLE 11
+PC == 0x2c;
+a5 == 0x14;
+@CYCLE 13
+PC == 0x34;
+a5 == 0xfffffffffffffff6;
+@CYCLE 15
+PC == 0x3c;
+a5 == 0x0;
+@CYCLE 19
+PC == 0x4c;
+@CYCLE 20
+PC == 0x50;
+@CYCLE 21
+PC == 0x54;
+@CYCLE 22
+PC == 0x58;
+@CYCLE 23
+PC == 0x64;
+@CYCLE 28
+PC == 0x98;
+a4 == 0x3;
+@CYCLE 29
+PC == 0x6c;
+@CYCLE 31
+PC == 0x74;
+a4 == 0xfffffffffffffff6;
+@CYCLE 40
+PC == 0x98;
+@CYCLE 41
+PC == 0x6c;
+@CYCLE 52
+PC == 0x98;
+@CYCLE 53
+PC == 0x6c;
+@CYCLE 60
+PC == 0x88;
+@CYCLE 64
+PC == 0x98;
+@CYCLE 65
+PC == 0x6c;
+a4 == 0x3;
+a5 == 0x3;
+@CYCLE 69
+PC == 0x98;
+a4 == 0x3;
+a5 == 0x3;
+@CYCLE 70
+PC == 0x80;
+@CYCLE 71
+PC == 0x84;
+@CYCLE 74
+PC == 0x90;
+@CYCLE 75
+PC == 0x94;
+@CYCLE 76
+PC == 0x98;
+x14 == 0x3;
+x15 == 0x4;
+@CYCLE 77
+PC == 0x9c;
+a4 == 0x3;
+a5 == 0x4;
+@CYCLE 78
+PC == 0xa0;
+@CYCLE 79
+PC == 0xa4;

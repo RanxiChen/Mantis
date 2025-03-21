@@ -54,7 +54,7 @@ class DataPath(debug:Boolean=false,rfinit:String = "conf/reg.ini") extends Modul
   if(debug){io.probe.get.pc := pcReg}
 
   pcReg := pc_NextWire
-  printf("[INFO] |PC = 0x%x|\n",pcReg)
+  printf("[INFO]|PC = 0x%x|\n",pcReg)
 
   //IF
   val inst = Wire(UInt(64.W))
