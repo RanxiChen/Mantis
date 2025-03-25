@@ -51,7 +51,8 @@ module cpu (
     // 寄存器直接访问接口：
 
     input regacc_vld;                   // 核心在pause或interrupt状态下，高电平时，在本周期内核心响应对逻辑寄存器的直接操作。在下一次regacc_resp_vld被置高后的下一周期前不会再次发起
-    input [7:0] regacc_idx;             // 该操作的逻辑寄存器号
+    input [7:0] regacc_idx;             // 该操作的逻辑寄存器号 
+    // 5 bits or 8 bits
     input regacc_write;                 // 高电平时，该操作为寄存器写；低电平时，该操作为寄存器读
     input [63:0] regacc_data;           // 该操作为寄存器写时，待写入的寄存器数据
 
