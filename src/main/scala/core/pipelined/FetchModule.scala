@@ -11,9 +11,9 @@ class FetchInstIO extends Bundle{
 
 class SimpleFetchModule extends Module{
     val io = IO(new Bundle{
-        val pcIn = Input(new PassPCIO)
+        val pcIn = Input(new PassPCBundle)
         val getInst = Input(new FetchInstIO)
-        val out = Output( new PassPCInstIO)
+        val out = Output( new PassPCInstBundle)
     })
     io.getInst.addr := io.pcIn.pc
     io.out.pc := io.pcIn.pc

@@ -7,14 +7,14 @@ import chisel3.experimental.BundleLiterals._
 import core.Instructions
 class InstQuequeBuilder extends Module {
     val io = IO(new Bundle{
-        val in = Input(new PassPCInstIO)
-        val out = Output(new PassPCInstIO)
+        val in = Input(new PassPCInstBundle)
+        val out = Output(new PassPCInstBundle)
     })
 }
 
 class SingleInstQueue extends InstQuequeBuilder {
     val instQueque = RegInit(
-        (new PassPCInstIO).Lit(
+        (new PassPCInstBundle).Lit(
             _.inst -> Instructions.NOP,
             _.pc -> 0.U
         )
