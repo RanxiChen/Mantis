@@ -161,7 +161,7 @@ class DataPath(debug:Boolean=false,rfinit:String = "conf/reg.ini") extends Modul
       (io.dpIO.ctrl.wb_sel === Signal.DATA_MEM ) -> io.dpIO.memory.rdata,
       (io.dpIO.ctrl.wb_sel === Signal.DATA_IMM ) -> immValue,
       (io.dpIO.ctrl.wb_sel === Signal.DATA_PC4 ) -> pc_4,
-      (io.dpIO.ctrl.wb_sel === Signal.DATA_RS2 ) -> rf.io.rf.rs2_data,
+      //(io.dpIO.ctrl.wb_sel === Signal.DATA_RS2 ) -> rf.io.rf.rs2_data,
       (io.dpIO.ctrl.wb_sel === Signal.DATA_XXX ) -> 0.U
     )
   )

@@ -49,11 +49,11 @@ object Signal {
   val WB_X = false.B
 
   //WB source
-  val DATA_ALU = 0.U(3.W)
-  val DATA_IMM = 1.U(3.W)
-  val DATA_MEM = 2.U(3.W)
-  val DATA_PC4 = 3.U(3.W)
-  val DATA_RS2 = 4.U(3.W)
-  val DATA_XXX = 0.U(3.W)
+  val DATA_ALU = 0.U(2.W)
+  val DATA_IMM = 1.U(2.W)
+  val DATA_MEM = 2.U(2.W)
+  val DATA_PC4 = 3.U(2.W)
+  //val DATA_RS2 = 4.U(3.W)
+  val DATA_XXX = 0.U(2.W)
 
 }

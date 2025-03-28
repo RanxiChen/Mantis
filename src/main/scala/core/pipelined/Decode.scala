@@ -3,22 +3,6 @@ package core.pipelined
 import chisel3._
 import chisel3.util._
 
-class PassuInstBundle extends Bundle {
-    val src1 = UInt(64.W)
-    val src2 = UInt(64.W)
-    val alu_op = UInt(4.W)
-    val bru_op = UInt(3.W)
-    val mem_width = UInt(3.W)
-    val mem_sig = Bool()
-    val mem_we = Bool()
-    val wb_sel = UInt(3.W)
-    val wb_en = Bool()
-    val pc_sel = UInt(2.W)  
-    val rs2_data = UInt(64.W)
-    val rd_addr = UInt(5.W)
-    val pc_4 = UInt(64.W)
-}
-
 class DecodeModule extends Module {
     val io = IO(new Bundle{
         val in = Input(new PassPCInstBundle)
@@ -49,6 +33,7 @@ class DecodeModule extends Module {
         (CtrlSigs(2) === B_RS2) -> io.fetchrf.src2_data
     )
     )
+    printf("[ID] src1: 0x%x, src2: 0x%x\n",io.out.src1,io.out.src2)
     io.out.alu_op := CtrlSigs(4)
     io.out.bru_op := CtrlSigs(5)
     io.out.mem_width := CtrlSigs(6)
@@ -56,9 +41,10 @@ class DecodeModule extends Module {
     io.out.mem_we := CtrlSigs(8)
     io.out.wb_sel := CtrlSigs(9)
     io.out.wb_en := CtrlSigs(10)
-    io.out.pc_sel := CtrlSigs(0)
+    //io.out.pc_sel := CtrlSigs(0)
     io.out.pc_4 := io.in.pc_4
     io.out.rd_addr := inst_rd
     io.out.rs2_data := io.fetchrf.src2_data
+    io.out.imm_u := immValue
 }
 

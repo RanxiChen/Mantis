@@ -30,9 +30,9 @@ object IDMap {
     LWU        -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_I  ,OP_ADD,  Br_XXX,  WIDTH_W   ,SIG_U   ,MEM_N  ,DATA_MEM   ,WB_W),
     LBU        -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_I  ,OP_ADD,  Br_XXX,  WIDTH_B   ,SIG_U   ,MEM_N  ,DATA_MEM   ,WB_W),
     LHU        -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_I  ,OP_ADD,  Br_XXX,  WIDTH_H   ,SIG_U   ,MEM_N  ,DATA_MEM   ,WB_W),
-    SB         -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_S  ,OP_ADD,  Br_XXX,  WIDTH_B   ,SIG_X   ,MEM_W  ,DATA_RS2   ,WB_N),
-    SH         -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_S  ,OP_ADD,  Br_XXX,  WIDTH_H   ,SIG_X   ,MEM_W  ,DATA_RS2   ,WB_N),
-    SW         -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_S  ,OP_ADD,  Br_XXX,  WIDTH_W   ,SIG_X   ,MEM_W  ,DATA_RS2   ,WB_N),
+    SB         -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_S  ,OP_ADD,  Br_XXX,  WIDTH_B   ,SIG_X   ,MEM_W  ,DATA_XXX   ,WB_N),
+    SH         -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_S  ,OP_ADD,  Br_XXX,  WIDTH_H   ,SIG_X   ,MEM_W  ,DATA_XXX   ,WB_N),
+    SW         -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_S  ,OP_ADD,  Br_XXX,  WIDTH_W   ,SIG_X   ,MEM_W  ,DATA_XXX   ,WB_N),
     ADDI       -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_I  ,OP_ADD,  Br_XXX,  WIDTH_X   ,SIG_X   ,MEM_N  ,DATA_ALU   ,WB_W),
     SLTI       -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_I  ,OP_SLT,  Br_XXX,  WIDTH_X   ,SIG_X   ,MEM_N  ,DATA_ALU   ,WB_W),
     SLTIU      -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_I  ,OP_SLTU, Br_XXX,  WIDTH_X   ,SIG_X   ,MEM_N  ,DATA_ALU   ,WB_W),
@@ -52,6 +52,6 @@ object IDMap {
     XOR        -> List(PC_4     ,A_RS1   ,B_RS2,   IMM_X  ,OP_XOR,  Br_XXX,  WIDTH_X   ,SIG_X   ,MEM_N  ,DATA_ALU   ,WB_W),
     //RV64I
     LD         -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_I  ,OP_ADD,  Br_XXX,  WIDTH_D   ,SIG_X   ,MEM_N  ,DATA_MEM   ,WB_W),
-    SD         -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_S  ,OP_ADD,  Br_XXX,  WIDTH_D   ,SIG_X   ,MEM_W  ,DATA_RS2   ,WB_N)
+    SD         -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_S  ,OP_ADD,  Br_XXX,  WIDTH_D   ,SIG_X   ,MEM_W  ,DATA_XXX   ,WB_N)
     )
 }

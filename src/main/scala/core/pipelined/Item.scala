@@ -9,4 +9,6 @@ class TinySOC(main_memsize:Int,rom_path:String,hexrommapfile:String) extends Mod
     val piplinedPU = Module(new PiplinedPU) 
     piplinedPU.io.fetchinst <> main_mem.io.IFPort
     println("Successfully connect fetch to main memory")
+    piplinedPU.io.fetchdata <> main_mem.io.MemPort
+    println("Successfully connect fetch to main memory")
 }
