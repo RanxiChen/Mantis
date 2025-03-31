@@ -7,7 +7,7 @@ class DecodeModule extends Module {
     val io = IO(new Bundle{
         val in = Input(new PassPCInstBundle)
         val out = Output(new PassuInstBundle)
-        val fetchrf = Input(new RegFileReadPort)
+        val fetchrf = Flipped(new RegFileReadPort)
     })
     import core.Signal._
     import core.IDMap._
@@ -33,7 +33,24 @@ class DecodeModule extends Module {
         (CtrlSigs(2) === B_RS2) -> io.fetchrf.src2_data
     )
     )
-    printf("[ID] src1: 0x%x, src2: 0x%x\n",io.out.src1,io.out.src2)
+    /*
+    //printf("[ID] src1: 0x%x, src2: 0x%x\t",io.out.src1,io.out.src2)
+    printf("[ID]")
+    when(CtrlSigs(1) === A_PC){
+        printf("src1:0x%x from PC    ",io.out.src1)
+
+    }.otherwise{
+        printf("src1:0x%x from Reg%d ",io.out.src1,inst_rs1)
+    }
+    when(CtrlSigs(2) === B_PC){
+        printf("src2:0x%x from PC   ",io.out.src2)
+
+    }.elsewhen(CtrlSigs(2) === B_IMM){
+        printf("src2:0x%x from Imm   ",io.out.src2)
+
+    }.otherwise{
+        printf("src2:0x%x from Reg%d ",io.out.src2,inst_rs2)
+    }*/
     io.out.alu_op := CtrlSigs(4)
     io.out.bru_op := CtrlSigs(5)
     io.out.mem_width := CtrlSigs(6)
@@ -48,3 +65,33 @@ class DecodeModule extends Module {
     io.out.imm_u := immValue
 }
 
+trait DecodeModuleProbe {
+    val probe = IO(new Bundle{
+        val src1 = UInt(64.W)
+        val src2 = UInt(64.W)
+        val src1_source = UInt(1.W)
+        val src2_source = UInt(2.W)
+        val imm_u = UInt(64.W)
+    })
+    println("ID Module with probe")
+}
+
+class DecodeModuleWithProbe extends DecodeModule with DecodeModuleProbe {
+    probe.src1 := io.out.src1
+    probe.src2 := io.out.src2
+    probe.src1_source := io.out.alu_op
+    probe.src2_source := io.out.bru_op
+    probe.imm_u := io.out.imm_u
+}
+
+object DecodeModule {
+    def apply(probe: Boolean=false): DecodeModule = {
+        if (probe) {
+            val decodeModule = Module(new DecodeModuleWithProbe)
+            decodeModule
+        } else {
+            val decodeModule = Module(new DecodeModule)
+            decodeModule
+        }
+    }
+}

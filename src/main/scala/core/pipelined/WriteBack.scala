@@ -18,5 +18,30 @@ class WriteBackModule extends Module {
     )
     )
     io.out.WriteEnable := io.in.wb_en
-    printf("[WB] write 0x%x to Reg:0x%x, with en:%x\n",io.out.rd_data,io.out.rd_addr,io.out.WriteEnable)
+    //printf("[WB] write 0x%x to Reg:0x%x, with en:%x\n",io.out.rd_data,io.out.rd_addr,io.out.WriteEnable)
+}
+
+trait WriteBackModuleProbe {
+    val probe = IO(new Bundle{
+        val rd_addr = UInt(5.W)
+        val rd_data = UInt(64.W)
+        val WriteEnable = Bool()
+    })
+    println("WB Module with probe")
+}
+class WriteBackModuleWithProbe extends WriteBackModule with WriteBackModuleProbe {
+    probe.rd_addr := io.out.rd_addr
+    probe.rd_data := io.out.rd_data
+    probe.WriteEnable := io.out.WriteEnable
+}
+object WriteBackModule {
+    def apply(probe: Boolean=false): WriteBackModule = {
+        if (probe) {
+            val wbModule = Module(new WriteBackModuleWithProbe)
+            wbModule
+        } else {
+            val wbModule = Module(new WriteBackModule)
+            wbModule
+        }
+    }
 }

@@ -4,6 +4,8 @@ import chisel3._
 import chisel3.util._
 import core.Signal._
 
+
+
 class MemModule extends Module{
     val io = IO(new Bundle{
         val in = Input(new ExeMemBundle)
@@ -22,10 +24,41 @@ class MemModule extends Module{
     io.getdata.sig := io.in.mem_sig
     io.getdata.wdata := io.in.rs2_data
     io.out.mem_res := io.getdata.rdata
-    if(io.in.mem_we.litToBoolean){
+    /*when(io.in.mem_we){
         //Write
-        printf("[MEM] Write 0x%x to addr:0x%x,with bfwd:%x\n",io.getdata.wdata,io.getdata.addr,io.getdata.bfwd)
-    }else {
-        printf("[MEM] Read 0x%x from addr:0x%x,with sig:%x,bfwd:%x\n",io.getdata.rdata,io.getdata.addr,io.getdata.sig,io.getdata.bfwd)
+        printf("[MEM] Write 0x%x to addr:0x%x,with bfwd:%x,no width\t",io.getdata.wdata,io.getdata.addr,io.getdata.bfwd)
+    }.otherwise {
+        printf("[MEM]  Read 0x%x from addr:0x%x,with sig:%x,bfwd:%x\t",io.getdata.rdata,io.getdata.addr,io.getdata.sig,io.getdata.bfwd)
+    }*/
+}
+
+trait MemModuleProbe {
+    val probe = IO(new Bundle{
+        val addr = UInt(64.W)
+        val WE = Bool()
+        val bfwd = UInt(3.W)
+        val sig = Bool()
+        val wdata = UInt(64.W)
+        val rdata = UInt(64.W)
+    })
+    println("MEM Module with probe")
+}
+class MemModuleWithProbe extends MemModule with MemModuleProbe {
+    probe.addr := io.getdata.addr
+    probe.WE := io.getdata.WE
+    probe.bfwd := io.getdata.bfwd
+    probe.sig := io.getdata.sig
+    probe.wdata := io.getdata.wdata
+    probe.rdata := io.out.mem_res
+}
+object MemModule {
+    def apply(probe: Boolean=false): MemModule = {
+        if (probe) {
+            val memModule = Module(new MemModuleWithProbe)
+            memModule
+        } else {
+            val memModule = Module(new MemModule)
+            memModule
+        }
     }
 }

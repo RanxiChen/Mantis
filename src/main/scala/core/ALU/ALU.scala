@@ -20,6 +20,7 @@ object ALUOp {
   val OP_XXX = 0.U(4.W)
 }
 
+
 class ALU extends Module {
   val io = IO(new Bundle {
     val src1 = Input(UInt(64.W))
