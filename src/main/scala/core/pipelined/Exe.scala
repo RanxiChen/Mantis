@@ -31,17 +31,15 @@ class ExeModule extends Module{
     io.out.rs2_data := io.in.rs2_data
     //printf("[EXE] op1:0x%x,op2:0x%x,op:%x,alu_res:0x%x(bru op = %x,taken = %x)\t",io.in.src1,io.in.src2,io.in.alu_op,io.out.alu_res,io.in.bru_op,io.taken)
 }
-trait ExeModuleProbe {
-    val probe = IO(new Bundle{
-        val src1 = UInt(64.W)
-        val src2 = UInt(64.W)
-        val alu_op = UInt(4.W)
-        val alu_res = UInt(64.W)
-    })
-    println("EXE Module with probe")
+class ExeModuleProbeIO extends Bundle{
+        val src1 = Output(UInt(64.W))
+        val src2 = Output(UInt(64.W))
+        val alu_op = Output(UInt(4.W))
+        val alu_res = Output(UInt(64.W))
 }
 
-class ExeModuleWithProbe extends ExeModule with ExeModuleProbe {
+class ExeModuleWithProbe extends ExeModule {
+    val probe = IO(new ExeModuleProbeIO)
     probe.src1 := io.in.src1
     probe.src2 := io.in.src2
     probe.alu_op := io.in.alu_op

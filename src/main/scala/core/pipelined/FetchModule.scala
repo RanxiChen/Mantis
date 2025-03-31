@@ -23,7 +23,7 @@ class SimpleFetchModule extends Module{
     io.out.pc_4 := io.pcIn.pc_4
     io.getInst.addr := io.pcIn.pc
     io.out.inst := io.getInst.inst
-    //println("IF will just get single inst from port")
+    println("IF will just get single inst from port")
     //printf("[IF] from PC = 0x%x get Inst: 0x%x\t", io.pcIn.pc, io.getInst.inst)
 }
 

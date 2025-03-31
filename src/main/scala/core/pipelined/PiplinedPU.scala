@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import chisel3.experimental.BundleLiterals._
 import core.Signal._
+import core.Colors._
 
 class PassPCBundle extends Bundle {
   val pc = UInt(64.W)
@@ -89,32 +90,38 @@ class PUIO extends Bundle{
   val fetchdata = new FetchDataIO
 }
 
-trait PUProbe {
-  val probe = IO(new Bundle{
+class PUProbe extends Bundle {
     val mcycle = UInt(64.W)
     val IF = new PassPCInstBundle
-    val ID = new PassuInstBundle
-    val EXE = new ExeMemBundle
-    val MEM = new MemWritebackBundle
-    val WB = new MemWritebackBundle
-  })
+    val ID = new DecodeModuleProbeIO
+    val EXE = new ExeModuleProbeIO
+    val MEM = new MemModuleProbeIO
+    val WB = new WriteBackModuleProbeIO
 }
 
-class PiplinedPU(debug:Boolean=false) extends Module with PUProbe {
+class PiplinedPU extends Module {
   val io = IO(new PUIO)
+  val probe = IO(new PUProbe)
   val mcycle = RegInit(0.U(64.W))
   mcycle := mcycle + 1.U
   //printf("[%d]", mcycle)
   //IF stage
   probe.mcycle := mcycle
   val pcModule = Module(new PCGenModule)
-  val ifetchModule = FetchModule(debug)
+  val ifetchModule = Module(new SimpleFetchModule)
+  probe.IF.pc := ifetchModule.io.out.pc
+  probe.IF.pc_4 := ifetchModule.io.out.pc_4
+  probe.IF.inst := ifetchModule.io.out.inst
   val instQueue = Module(new SingleInstQueue)
   val rf = Module(new PipelinedRegFileImpl)
-  val decodeModule = Module(new DecodeModule)
-  val exeModule = ExeModule(debug)
-  val memModule = MemModule(debug)
-  val wbModule = WriteBackModule(debug)
+  val decodeModule = Module(new DecodeModuleWithProbe)
+  probe.ID <> decodeModule.probe
+  val exeModule = Module(new ExeModuleWithProbe)
+  probe.EXE <> exeModule.probe
+  val memModule = Module(new MemModuleWithProbe)
+  probe.MEM <> memModule.probe
+  val wbModule = Module(new WriteBackModuleWithProbe)
+  probe.WB <> wbModule.probe
   val decodeexeReg = RegInit(
     (new PassuInstBundle).Lit(
       _.wb_en -> false.B,

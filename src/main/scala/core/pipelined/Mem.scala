@@ -32,18 +32,16 @@ class MemModule extends Module{
     }*/
 }
 
-trait MemModuleProbe {
-    val probe = IO(new Bundle{
-        val addr = UInt(64.W)
-        val WE = Bool()
-        val bfwd = UInt(3.W)
-        val sig = Bool()
-        val wdata = UInt(64.W)
-        val rdata = UInt(64.W)
-    })
-    println("MEM Module with probe")
+class MemModuleProbeIO extends Bundle {
+        val addr = Output(UInt(64.W))
+        val WE = Output(Bool())
+        val bfwd = Output(UInt(3.W))
+        val sig = Output(Bool())
+        val wdata = Output(UInt(64.W))
+        val rdata = Output(UInt(64.W))
 }
-class MemModuleWithProbe extends MemModule with MemModuleProbe {
+class MemModuleWithProbe extends MemModule {
+    val probe = IO(new MemModuleProbeIO)
     probe.addr := io.getdata.addr
     probe.WE := io.getdata.WE
     probe.bfwd := io.getdata.bfwd

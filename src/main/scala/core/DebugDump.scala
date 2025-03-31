@@ -1,4 +1,4 @@
-package tool
+package core
 import chisel3._
 import chisel3.util._
 import chisel3.experimental.BundleLiterals._
@@ -24,6 +24,9 @@ object Colors {
     CYAN,
     WHITE
   )
+  def getcolor(Index:Int): String = {
+    colorbar(Index%5)
+  }
 }
 
 // 使用示例

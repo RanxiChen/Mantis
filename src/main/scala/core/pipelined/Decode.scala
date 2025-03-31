@@ -64,15 +64,17 @@ class DecodeModule extends Module {
     io.out.rs2_data := io.fetchrf.src2_data
     io.out.imm_u := immValue
 }
-
+class DecodeModuleProbeIO extends Bundle{
+    val src1 = Output(UInt(64.W))
+    val src2 = Output(UInt(64.W))
+    val src1_source = Output(UInt(1.W))
+    val src2_source = Output(UInt(2.W))
+    val imm_u = Output(UInt(64.W))
+    val inst_rs1 = Output(UInt(5.W))
+    val inst_rs2 = Output(UInt(5.W))
+}
 trait DecodeModuleProbe {
-    val probe = IO(new Bundle{
-        val src1 = UInt(64.W)
-        val src2 = UInt(64.W)
-        val src1_source = UInt(1.W)
-        val src2_source = UInt(2.W)
-        val imm_u = UInt(64.W)
-    })
+    val probe = IO(new DecodeModuleProbeIO)
     println("ID Module with probe")
 }
 
@@ -82,6 +84,8 @@ class DecodeModuleWithProbe extends DecodeModule with DecodeModuleProbe {
     probe.src1_source := io.out.alu_op
     probe.src2_source := io.out.bru_op
     probe.imm_u := io.out.imm_u
+    probe.inst_rs1 := inst_rs1
+    probe.inst_rs2 := inst_rs2
 }
 
 object DecodeModule {
