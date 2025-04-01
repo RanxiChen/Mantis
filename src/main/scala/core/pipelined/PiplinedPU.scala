@@ -13,6 +13,7 @@ class PassPCBundle extends Bundle {
 
 class PassPCInstBundle extends PassPCBundle {
   val inst = UInt(64.W)
+  val notbubble = Bool()
 }
 
 class FeadBackPCBundle extends Bundle {
@@ -42,6 +43,7 @@ class MemWritebackBundle extends Bundle {
   val alu_res = UInt(64.W)
   val mem_res = UInt(64.W)
   val imm_u = UInt(64.W)
+  val notbubble = Bool()
 }
 
 class ExeMemBundle extends Bundle {
@@ -56,6 +58,7 @@ class ExeMemBundle extends Bundle {
   val mem_sig = Bool()
   val mem_we = Bool()
   val rs2_data = UInt(64.W)
+  val notbubble = Bool()
 }
 
 class PassuInstBundle extends Bundle {
@@ -74,6 +77,7 @@ class PassuInstBundle extends Bundle {
   val mem_sig = Bool()
   val mem_we = Bool()
   val rs2_data = UInt(64.W)
+  val notbubble = Bool()
 }
 
 class FetchDataIO extends Bundle {
@@ -97,6 +101,7 @@ class PUProbe extends Bundle {
     val EXE = new ExeModuleProbeIO
     val MEM = new MemModuleProbeIO
     val WB = new WriteBackModuleProbeIO
+    val rf = new RegWatchPort
 }
 
 class PiplinedPU extends Module {
@@ -109,11 +114,10 @@ class PiplinedPU extends Module {
   probe.mcycle := mcycle
   val pcModule = Module(new PCGenModule)
   val ifetchModule = Module(new SimpleFetchModule)
-  probe.IF.pc := ifetchModule.io.out.pc
-  probe.IF.pc_4 := ifetchModule.io.out.pc_4
-  probe.IF.inst := ifetchModule.io.out.inst
-  val instQueue = Module(new SingleInstQueue)
-  val rf = Module(new PipelinedRegFileImpl)
+  val instQueue = Module(new InstQuequeWithProbe)
+  probe.IF <> instQueue.probe
+  val rf = Module(new PipelinedRegFileWithWatchPort)
+  probe.rf <> rf.debug
   val decodeModule = Module(new DecodeModuleWithProbe)
   probe.ID <> decodeModule.probe
   val exeModule = Module(new ExeModuleWithProbe)
@@ -137,7 +141,8 @@ class PiplinedPU extends Module {
       _.src1 -> 0.U,
       _.src2 -> 0.U,
       _.alu_op -> core.ALU.ALUOp.OP_ADD,
-      _.bru_op -> core.BrExe.BrOp.Br_EQ
+      _.bru_op -> core.BrExe.BrOp.Br_EQ,
+      _.notbubble -> false.B,
     )
   )
   val exememReg = RegInit(
@@ -151,7 +156,8 @@ class PiplinedPU extends Module {
       _.mem_width -> 0.U,
       _.mem_sig -> false.B,
       _.mem_we -> false.B,
-      _.rs2_data -> 0.U
+      _.rs2_data -> 0.U,
+      _.notbubble -> false.B,
     )
   )
   val memwbReg = RegInit(
@@ -162,7 +168,8 @@ class PiplinedPU extends Module {
       _.pc_4 -> 0.U,
       _.alu_res -> 0.U,
       _.mem_res -> 0.U,
-      _.imm_u -> 0.U
+      _.imm_u -> 0.U,
+      _.notbubble -> false.B,
     )
   )
   io.fetchinst <> ifetchModule.io.getInst

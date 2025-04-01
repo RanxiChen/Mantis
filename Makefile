@@ -15,3 +15,8 @@ clean:
 		echo "Cleaning in $$dir...";\
 		$(MAKE) -C $$dir clean; \
 	done
+
+test:
+	cp unittest/PipelinedRV64/JustCompute_rom.hex conf/rom.hex
+	cp unittest/PipelinedRV64/JustCompute.ref conf/pipelined.ref
+	sbt 'testOnly core.pipelined.TinySocSpec'

@@ -29,6 +29,7 @@ class ExeModule extends Module{
     io.out.mem_sig := io.in.mem_sig
     io.out.mem_we := io.in.mem_we
     io.out.rs2_data := io.in.rs2_data
+    io.out.notbubble := io.in.notbubble
     //printf("[EXE] op1:0x%x,op2:0x%x,op:%x,alu_res:0x%x(bru op = %x,taken = %x)\t",io.in.src1,io.in.src2,io.in.alu_op,io.out.alu_res,io.in.bru_op,io.taken)
 }
 class ExeModuleProbeIO extends Bundle{

@@ -7,47 +7,49 @@ import core.Signal._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import core.Colors._
-//import chiseltest._
+import chiseltest._
 import chisel3.experimental.BundleLiterals._
-import chisel3.simulator.EphemeralSimulator._
-class TinySocSpec extends AnyFreeSpec with Matchers {
+//import chisel3.simulator.EphemeralSimulator._
+class TinySocSpec extends AnyFreeSpec with Matchers with ChiselScalatestTester {
     //accept rom and run
     "test one Tiny Soc but 5 stage pipelined" in {
-        val max_cycle=25
-        simulate(new TinySOC(1,"unittest/PipelinedRV64/JustCompute_rom.hex")(true) ){ dut =>
+        val max_cycle=10
+        test(new TinySOC(1,"conf/rom.hex")(true) ).withAnnotations(Seq(VerilatorBackendAnnotation,WriteVcdAnnotation)){ dut =>
             //reset
+            val testSets = tool.PUPort.testSetsfromFile("conf/pipelined.ref")
             dut.reset.poke(true.B)
             dut.clock.step()
             dut.reset.poke(false.B)
             println("Run after reset")
-            for(cnt <- 1 to max_cycle){
-                var colorcnt = cnt+5
-                //dut.clock.step()
-                print(f"[${dut.io.mcycle.peek().litValue}%016x]\t")
+            var Instcnt = 0
+            for(cnt <- 0 to max_cycle){
+                var colorcnt = cnt
+                print(f"[${dut.io.mcycle.peek().litValue}%016x]")
                 //IF
                 val PC = dut.io.IF.pc.peek().litValue
-                val inst = dut.io.IF.inst.peek().litValue
-                print(f"${getcolor(colorcnt)}[IF] from 0x${PC}%016x get Inst: 0x${inst}%08x${RESET}\t")
+                val inst_raw ="%08x".format(dut.io.IF.inst.peek().litValue)
+                //val inst = tool.ProcessHexInst.hexInsttoReadableString(inst_raw)
+                print(f"${getcolor(colorcnt)}[IF] from 0x${PC}%016x get Inst: ${inst_raw}${RESET}")
                 //ID
                 val src1 = dut.io.ID.src1.peek().litValue
                 val src2 = dut.io.ID.src2.peek().litValue
                 var src1_source = {
-                    if(dut.io.ID.src1_source.peek().litValue == 1){
+                    if(dut.io.ID.src1_source.peek().litValue == A_PC.litValue){
                         "PC " + "  "
                     }else{
                         "Reg" + f"${dut.io.ID.inst_rs1.peek().litValue}%02d"
                     }
                 }
                 var src2_source = {
-                    if(dut.io.ID.src2_source.peek().litValue == 0){
+                    if(dut.io.ID.src2_source.peek().litValue == B_RS2.litValue){
                         ("Reg"+ f"${dut.io.ID.inst_rs2.peek().litValue}%02d")
-                    }else if(dut.io.ID.src2_source.peek().litValue == 1){
+                    }else if(dut.io.ID.src2_source.peek().litValue == B_IMM.litValue){
                         ("Imm" + "  ")
                     }else{
                         ("PC " + "  ")
                     }
                 }
-                print(f"${getcolor(colorcnt-1)}[ID] src1:0x${src1}%016x from ${src1_source} src2:0x${src2}%016x from ${src2_source}${RESET}\t")
+                print(f"${getcolor(colorcnt-1)}[ID] src1:0x${src1}%016x from ${src1_source} src2:0x${src2}%016x from ${src2_source}${RESET}")
                 //EXE
                 var op:String  = {
                     dut.io.EXE.alu_op.peek().litValue.toInt match {
@@ -65,7 +67,7 @@ class TinySocSpec extends AnyFreeSpec with Matchers {
                     }
                 }
                 val alu_res = dut.io.EXE.alu_res.peek().litValue
-                print(f"${getcolor(colorcnt-2)}[EXE] op :${op},alu_res:0x${alu_res}%016x${RESET}\t")
+                print(f"${getcolor(colorcnt-2)}[EXE] op :${op},alu_res:0x${alu_res}%016x${RESET}")
                 //MEM
                 var mem_sig = dut.io.MEM.sig.peek().litToBoolean match {
                     case true => " S"
@@ -81,9 +83,9 @@ class TinySocSpec extends AnyFreeSpec with Matchers {
                     }
                 }
                 if(dut.io.MEM.WE.peek().litToBoolean){
-                    print(f"${getcolor(colorcnt-3)}[MEM] Write:0x${dut.io.MEM.wdata.peek().litValue}%016x${mem_sig}${mem_width} to addr:0x${dut.io.MEM.addr.peek().litValue}%016x${RESET}\t")
+                    print(f"${getcolor(colorcnt-3)}[MEM] Write:0x${dut.io.MEM.wdata.peek().litValue}%016x${mem_sig}${mem_width} to addr:0x${dut.io.MEM.addr.peek().litValue}%016x${RESET}")
                 }else {
-                    print(f"${getcolor(colorcnt-3)}[MEM]  Read:0x${dut.io.MEM.rdata.peek().litValue}%016x${mem_sig}${mem_width} from addr:0x${dut.io.MEM.addr.peek().litValue}%016x${RESET}\t")
+                    print(f"${getcolor(colorcnt-3)}[MEM]  Read:0x${dut.io.MEM.rdata.peek().litValue}%016x${mem_sig}${mem_width} from addr:0x${dut.io.MEM.addr.peek().litValue}%016x${RESET}")
                 }
                 //WB
                 var wb_sel = {
@@ -101,6 +103,29 @@ class TinySocSpec extends AnyFreeSpec with Matchers {
                     print(f"${getcolor(colorcnt-4)}[WB] Write:0x${rd_data}%016x to Reg${rd}%02d from ${wb_sel}${RESET}")
                 }else{
                     print(f"${getcolor(colorcnt-4)}[WB] No WB:0x${rd_data}%016x to Reg${rd}%02d from ${wb_sel}${RESET}")
+                }
+                //println()
+                //Verify
+                //Jus compute, no memory
+                //Inst will retire at WB stage
+                
+                if(dut.io.WB.WriteEnable.peek().litToBoolean && dut.io.WB.notbubble.peek().litToBoolean){
+                    Instcnt += 1
+                    print(f"[ Inst ${Instcnt} Retired]")
+                }
+                if(testSets.contains(Instcnt)){
+                    for((port,name) <- testSets(Instcnt)){
+                        port match {
+                            case tool.Reg(n) => {
+                                dut.io.rf.addr.poke(n.U)
+                                //dut.io.rf.data.expect(name.U)
+                                print(f"Reg${dut.io.rf.addr.peek().litValue}%02d is 0x${dut.io.rf.data.peek().litValue}%016x")
+                            }
+                            case _ => {
+                                print("[Unexpected] some test ref")
+                            }
+                        }
+                    }
                 }
                 println()
                 dut.clock.step()

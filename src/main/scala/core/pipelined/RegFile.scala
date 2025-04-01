@@ -6,8 +6,8 @@ import chisel3.util._
 class RegFileReadPort extends Bundle {
   val src1_addr = Input(UInt(5.W))
   val src2_addr = Input(UInt(5.W))
-  val src1_data = Output(UInt(32.W))
-  val src2_data = Output(UInt(32.W))
+  val src1_data = Output(UInt(64.W))
+  val src2_data = Output(UInt(64.W))
 }
 
 class RegFileWritePort extends Bundle {
@@ -46,4 +46,5 @@ class PipelinedRegFileImpl extends Module {
 class PipelinedRegFileWithWatchPort extends PipelinedRegFileImpl{
   val debug = IO(new RegWatchPort)
   debug.data := rf(debug.addr)
+  printf("Reg 4 = 0x%x",rf(4))
 }

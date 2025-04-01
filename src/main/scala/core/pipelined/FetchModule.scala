@@ -23,6 +23,7 @@ class SimpleFetchModule extends Module{
     io.out.pc_4 := io.pcIn.pc_4
     io.getInst.addr := io.pcIn.pc
     io.out.inst := io.getInst.inst
+    io.out.notbubble := true.B
     println("IF will just get single inst from port")
     //printf("[IF] from PC = 0x%x get Inst: 0x%x\t", io.pcIn.pc, io.getInst.inst)
 }
@@ -33,6 +34,7 @@ class SimpleFetchWithProbeModule extends SimpleFetchModule with FetchModuleProbe
     probe.pc := io.out.pc
     probe.pc_4 := io.out.pc_4
     probe.inst := io.out.inst
+    probe.notbubble := io.out.notbubble
 }
 
 object FetchModule {

@@ -24,6 +24,7 @@ class MemModule extends Module{
     io.getdata.sig := io.in.mem_sig
     io.getdata.wdata := io.in.rs2_data
     io.out.mem_res := io.getdata.rdata
+    io.out.notbubble := io.in.notbubble
     /*when(io.in.mem_we){
         //Write
         printf("[MEM] Write 0x%x to addr:0x%x,with bfwd:%x,no width\t",io.getdata.wdata,io.getdata.addr,io.getdata.bfwd)

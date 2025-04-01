@@ -17,36 +17,19 @@ object Colors {
   val colorbar = Array(
     //BLACK,
     //RED,
-    GREEN,
     YELLOW,
+    GREEN,
     BLUE,
     PURPLE,
     CYAN,
     WHITE
   )
   def getcolor(Index:Int): String = {
+    if(Index < 0){
+      colorbar(0)
+    }else{
     colorbar(Index%5)
   }
 }
-
-// 使用示例
-object ColorfulText {
-  def main(args: Array[String]): Unit = {
-    import Colors._
-    for ( i <- 0 until 12){
-        val color = colorbar(i % colorbar.length)
-        println(s"${color}This is a colorful text!${RESET}")
-    }
-  }
 }
 
-object pipelinedPUPuts {
-    def ReadWRiteString(signal:Bool):String = {
-        if(signal.litToBoolean){
-            "Write"
-        }else{
-            " Read"
-        }
-    }
-    
-}

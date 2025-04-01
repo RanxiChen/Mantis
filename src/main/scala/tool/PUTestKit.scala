@@ -64,6 +64,7 @@ object PUPort {
                 res(cyclecnt) = currentList :+ testcase
             }else{}
         }
+        //println(res.toMap)
         res.toMap
         }
     }

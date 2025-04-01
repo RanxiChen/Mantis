@@ -1,0 +1,27 @@
+@Inst 1
+sp == 0x0;
+@Inst 2
+gp == 0x0;
+@Inst 3
+tp == 0xa;
+@Inst 11
+t0 == 0x1e;
+@Inst 20
+t0 == 0x14;
+@Inst 28
+t1 == 0x1e;
+@Inst 41
+s0 == 0x19;
+t2 == 0x5;
+@Inst 49
+s1 == 0x64;
+@Inst 56
+a1 == 0x4;
+@Inst 63
+a2 == 0x1f;
+@Inst 69
+a3 == 0x1b;
+@Inst 75
+a4 == 0xd;
+@Inst 82
+a5 == 0x64;

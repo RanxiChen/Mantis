@@ -16,9 +16,19 @@ class SingleInstQueue extends InstQuequeBuilder {
     val instQueque = RegInit(
         (new PassPCInstBundle).Lit(
             _.inst -> Instructions.NOP,
-            _.pc -> 0.U
+            _.pc -> 0.U,
+            _.pc_4 -> 0.U,
+            _.notbubble -> false.B,
         )
     )
     instQueque <> io.in
     io.out <> instQueque
+}
+class InstQuequeWithProbe extends SingleInstQueue{
+    val probe = IO(new PassPCInstBundle)
+    probe.pc := instQueque.pc
+    probe.pc_4 := instQueque.pc_4
+    probe.inst := instQueque.inst
+    probe.notbubble := instQueque.notbubble
+    //printf("[IF] from PC = 0x%x get Inst: 0x%x\t", io.out.pc, io.out.inst)
 }

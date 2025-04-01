@@ -33,24 +33,7 @@ class DecodeModule extends Module {
         (CtrlSigs(2) === B_RS2) -> io.fetchrf.src2_data
     )
     )
-    /*
-    //printf("[ID] src1: 0x%x, src2: 0x%x\t",io.out.src1,io.out.src2)
-    printf("[ID]")
-    when(CtrlSigs(1) === A_PC){
-        printf("src1:0x%x from PC    ",io.out.src1)
-
-    }.otherwise{
-        printf("src1:0x%x from Reg%d ",io.out.src1,inst_rs1)
-    }
-    when(CtrlSigs(2) === B_PC){
-        printf("src2:0x%x from PC   ",io.out.src2)
-
-    }.elsewhen(CtrlSigs(2) === B_IMM){
-        printf("src2:0x%x from Imm   ",io.out.src2)
-
-    }.otherwise{
-        printf("src2:0x%x from Reg%d ",io.out.src2,inst_rs2)
-    }*/
+    
     io.out.alu_op := CtrlSigs(4)
     io.out.bru_op := CtrlSigs(5)
     io.out.mem_width := CtrlSigs(6)
@@ -63,6 +46,7 @@ class DecodeModule extends Module {
     io.out.rd_addr := inst_rd
     io.out.rs2_data := io.fetchrf.src2_data
     io.out.imm_u := immValue
+    io.out.notbubble := io.in.notbubble
 }
 class DecodeModuleProbeIO extends Bundle{
     val src1 = Output(UInt(64.W))
@@ -73,16 +57,13 @@ class DecodeModuleProbeIO extends Bundle{
     val inst_rs1 = Output(UInt(5.W))
     val inst_rs2 = Output(UInt(5.W))
 }
-trait DecodeModuleProbe {
-    val probe = IO(new DecodeModuleProbeIO)
-    println("ID Module with probe")
-}
 
-class DecodeModuleWithProbe extends DecodeModule with DecodeModuleProbe {
+class DecodeModuleWithProbe extends DecodeModule {
+    val probe = IO(new DecodeModuleProbeIO)
     probe.src1 := io.out.src1
     probe.src2 := io.out.src2
-    probe.src1_source := io.out.alu_op
-    probe.src2_source := io.out.bru_op
+    probe.src1_source := CtrlSigs(1)
+    probe.src2_source := CtrlSigs(2)
     probe.imm_u := io.out.imm_u
     probe.inst_rs1 := inst_rs1
     probe.inst_rs2 := inst_rs2

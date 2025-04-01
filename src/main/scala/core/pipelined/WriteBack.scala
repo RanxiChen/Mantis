@@ -26,6 +26,7 @@ class WriteBackModuleProbeIO extends Bundle {
         val rd_data = Output(UInt(64.W))
         val WriteEnable = Output(Bool())
         val wb_sel = Output(UInt(2.W))
+        val notbubble = Output(Bool())
     }
 class WriteBackModuleWithProbe extends WriteBackModule {
     val probe = IO(new WriteBackModuleProbeIO)
@@ -33,6 +34,7 @@ class WriteBackModuleWithProbe extends WriteBackModule {
     probe.rd_data := io.out.rd_data
     probe.WriteEnable := io.out.WriteEnable
     probe.wb_sel := io.in.wb_sel
+    probe.notbubble := io.in.notbubble
 }
 object WriteBackModule {
     def apply(probe: Boolean=false): WriteBackModule = {
