@@ -93,6 +93,9 @@ class PUIO extends Bundle{
   val fetchinst = new FetchInstIO
   val fetchdata = new FetchDataIO
 }
+class PipelineState extends Bundle {
+  val Retired = Output(Bool())
+}
 
 class PUProbe extends Bundle {
     val mcycle = UInt(64.W)
@@ -102,6 +105,7 @@ class PUProbe extends Bundle {
     val MEM = new MemModuleProbeIO
     val WB = new WriteBackModuleProbeIO
     val rf = new RegWatchPort
+    val pipelinestate = new PipelineState
 }
 
 class PiplinedPU extends Module {
@@ -113,9 +117,9 @@ class PiplinedPU extends Module {
   //IF stage
   probe.mcycle := mcycle
   val pcModule = Module(new PCGenModule)
-  val ifetchModule = Module(new SimpleFetchModule)
-  val instQueue = Module(new InstQuequeWithProbe)
-  probe.IF <> instQueue.probe
+  val ifetchModule = Module(new SimpleFetchWithProbeModule)
+  probe.IF <> ifetchModule.probe
+  val instQueue = Module(new SingleInstQueue)
   val rf = Module(new PipelinedRegFileWithWatchPort)
   probe.rf <> rf.debug
   val decodeModule = Module(new DecodeModuleWithProbe)
@@ -185,5 +189,8 @@ class PiplinedPU extends Module {
   memModule.io.out <> memwbReg
   wbModule.io.in <> memwbReg
   wbModule.io.out <> rf.io.writePort
-  
+  //whether writeback finished
+  val wbdone = RegInit(false.B)
+  wbdone := wbModule.io.out.WriteEnable && memwbReg.notbubble
+  probe.pipelinestate.Retired := wbdone  
 }

@@ -46,5 +46,6 @@ class PipelinedRegFileImpl extends Module {
 class PipelinedRegFileWithWatchPort extends PipelinedRegFileImpl{
   val debug = IO(new RegWatchPort)
   debug.data := rf(debug.addr)
-  printf("Reg 4 = 0x%x",rf(4))
+  val wdone = RegInit(false.B)
+  wdone := io.writePort.WriteEnable
 }

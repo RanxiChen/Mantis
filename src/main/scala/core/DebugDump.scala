@@ -22,13 +22,14 @@ object Colors {
     BLUE,
     PURPLE,
     CYAN,
-    WHITE
+    BLACK
+    //WHITE
   )
   def getcolor(Index:Int): String = {
     if(Index < 0){
       colorbar(0)
     }else{
-    colorbar(Index%5)
+    colorbar(Index%6)
   }
 }
 }
