@@ -17,6 +17,6 @@ clean:
 	done
 
 test:
-	cp unittest/PipelinedRV64/JustCompute_rom.hex conf/rom.hex
-	cp unittest/PipelinedRV64/JustCompute.ref conf/pipelined.ref
+	cp unittest/PipelinedRV64/Hazard01Text.hex conf/rom.hex
+	cp unittest/PipelinedRV64/Hazard01.ref conf/pipelined.ref
 	sbt 'testOnly core.pipelined.TinySocSpec'
