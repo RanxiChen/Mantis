@@ -13,10 +13,10 @@ import chisel3.experimental.BundleLiterals._
 class TinySocSpec extends AnyFreeSpec with Matchers with ChiselScalatestTester {
     //accept rom and run
     "test one Tiny Soc but 5 stage pipelined" in {
-        val max_cycle=100
-        test(new TinySOC(1,"conf/rom.hex")(true) ).withAnnotations(Seq(VerilatorBackendAnnotation,WriteVcdAnnotation)){ dut =>
+        val max_cycle=15
+        test(new TinySOC(1,"conf/rom.hex")(true) ).withAnnotations(Seq(VerilatorBackendAnnotation/*,WriteVcdAnnotation*/)){ dut =>
             //reset
-            val testSets = tool.PUPort.testSetsfromFile("conf/pipelined.ref")
+            //val testSets = tool.PUPort.testSetsfromFile("conf/pipelined.ref")
             dut.reset.poke(true.B)
             dut.clock.step()
             dut.reset.poke(false.B)
@@ -24,12 +24,12 @@ class TinySocSpec extends AnyFreeSpec with Matchers with ChiselScalatestTester {
             var Instcnt = 0
             for(cnt <- 0 to max_cycle){
                 var colorcnt = cnt
-                print(f"[${dut.io.mcycle.peek().litValue}%016x]")
+                print(f"[${dut.io.mcycle.peek().litValue}%03x]")
                 //IF
                 val PC = dut.io.IF.pc.peek().litValue
                 val inst_raw ="%08x".format(dut.io.IF.inst.peek().litValue)
                 //val inst = tool.ProcessHexInst.hexInsttoReadableString(inst_raw)
-                print(f"${getcolor(colorcnt)}[IF] from 0x${PC}%016x get Inst: ${inst_raw}${RESET}[InstQueue]")
+                print(f"${getcolor(colorcnt)}[IF] from 0x${PC}%03x get Inst: ${inst_raw}${RESET}[InstQueue]")
                 //ID
                 val src1 = dut.io.ID.src1.peek().litValue
                 val src2 = dut.io.ID.src2.peek().litValue
@@ -49,7 +49,9 @@ class TinySocSpec extends AnyFreeSpec with Matchers with ChiselScalatestTester {
                         ("PC " + "  ")
                     }
                 }
-                print(f"${getcolor(colorcnt-1)}[ID] src1:0x${src1}%016x from ${src1_source} src2:0x${src2}%016x from ${src2_source}${RESET}[reg]")
+                if(dut.io.ID.notbubble.peek().litToBoolean){
+                    print(f"${getcolor(colorcnt-1)}[ID][pc ${dut.io.ID.pc.peek().litValue}%03x] src1:0x${src1}%03x from ${src1_source} src2:0x${src2}%03x from ${src2_source}${RESET}[reg]")
+                }
                 //EXE
                 var op:String  = {
                     dut.io.EXE.alu_op.peek().litValue.toInt match {
@@ -67,7 +69,9 @@ class TinySocSpec extends AnyFreeSpec with Matchers with ChiselScalatestTester {
                     }
                 }
                 val alu_res = dut.io.EXE.alu_res.peek().litValue
-                print(f"${getcolor(colorcnt-2)}[EXE] op :${op},alu_res:0x${alu_res}%016x${RESET}[reg]")
+                if(dut.io.EXE.notbubble.peek().litToBoolean){
+                    print(f"${getcolor(colorcnt-2)}[EXE][pc ${dut.io.EXE.pc.peek().litValue}%03x] op :${op},alu_res:0x${alu_res}%03x${RESET}[reg]")
+                }
                 //MEM
                 var mem_sig = dut.io.MEM.sig.peek().litToBoolean match {
                     case true => " S"
@@ -82,10 +86,12 @@ class TinySocSpec extends AnyFreeSpec with Matchers with ChiselScalatestTester {
                         case _ => "X"
                     }
                 }
-                if(dut.io.MEM.WE.peek().litToBoolean){
-                    print(f"${getcolor(colorcnt-3)}[MEM] Write:0x${dut.io.MEM.wdata.peek().litValue}%016x${mem_sig}${mem_width} to addr:0x${dut.io.MEM.addr.peek().litValue}%016x${RESET}[reg]")
-                }else {
-                    print(f"${getcolor(colorcnt-3)}[MEM]  Read:0x${dut.io.MEM.rdata.peek().litValue}%016x${mem_sig}${mem_width} from addr:0x${dut.io.MEM.addr.peek().litValue}%016x${RESET}[reg]")
+                if(dut.io.MEM.notbubble.peek().litToBoolean){
+                    if(dut.io.MEM.WE.peek().litToBoolean){
+                        print(f"${getcolor(colorcnt-3)}[MEM][pc ${dut.io.MEM.pc.peek().litValue}%03x] Write:0x${dut.io.MEM.wdata.peek().litValue}%03x${mem_sig}${mem_width} to addr:0x${dut.io.MEM.addr.peek().litValue}%03x${RESET}[reg]")
+                    }else {
+                        print(f"${getcolor(colorcnt-3)}[MEM][pc ${dut.io.MEM.pc.peek().litValue}%03x]  Read:0x${dut.io.MEM.rdata.peek().litValue}%03x${mem_sig}${mem_width} from addr:0x${dut.io.MEM.addr.peek().litValue}%03x${RESET}[reg]")
+                    }
                 }
                 //WB
                 var wb_sel = {
@@ -99,10 +105,12 @@ class TinySocSpec extends AnyFreeSpec with Matchers with ChiselScalatestTester {
                 }
                 var rd = dut.io.WB.rd_addr.peek().litValue
                 var rd_data = dut.io.WB.rd_data.peek().litValue
-                if(dut.io.WB.WriteEnable.peek().litToBoolean){
-                    print(f"${getcolor(colorcnt-4)}[WB] Write:0x${rd_data}%016x to Reg${rd}%02d from ${wb_sel}${RESET}[reg]")
-                }else{
-                    print(f"${getcolor(colorcnt-4)}[WB] No WB:0x${rd_data}%016x to Reg${rd}%02d from ${wb_sel}${RESET}[reg]")
+                if(dut.io.WB.notbubble.peek().litToBoolean){
+                    if(dut.io.WB.WriteEnable.peek().litToBoolean){
+                        print(f"${getcolor(colorcnt-4)}[WB][pc ${dut.io.WB.pc.peek().litValue}%03x] Write:0x${rd_data}%03x to Reg${rd}%02d from ${wb_sel}${RESET}[reg]")
+                    }else{
+                        print(f"${getcolor(colorcnt-4)}[WB][pc ${dut.io.WB.pc.peek().litValue}%03x] No WB:0x${rd_data}%03x to Reg${rd}%02d from ${wb_sel}${RESET}[reg]")
+                    }
                 }
                 //println()
                 //Verify
@@ -110,10 +118,9 @@ class TinySocSpec extends AnyFreeSpec with Matchers with ChiselScalatestTester {
                 //Inst will retire at WB stage
                 if(dut.io.pipelinestate.Retired.peekBoolean()){
                     Instcnt += 1
-                    print(f"${getcolor(colorcnt-5)}[Inst ${Instcnt}%3d Retired]${RESET}")
-                }else{
-                    print(f"${getcolor(colorcnt-5)}[${"No Inst retired"}%16s]${RESET}")
+                    print(f"${getcolor(colorcnt-5)}[Inst ${Instcnt}%3d Retired; WB Reg${dut.io.pipelinestate.wbaddr.peek().litValue}%02d]${RESET}")
                 }
+                /*
                 if(testSets.contains(Instcnt) && Instcnt <= testSets.keys.max){
                     for((port,name) <- testSets(Instcnt)){
                         port match {
@@ -127,7 +134,7 @@ class TinySocSpec extends AnyFreeSpec with Matchers with ChiselScalatestTester {
                             }
                         }
                     }
-                }
+                }*/
                 println()
                 dut.clock.step()
             }

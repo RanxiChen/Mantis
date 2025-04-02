@@ -95,6 +95,7 @@ class PUIO extends Bundle{
 }
 class PipelineState extends Bundle {
   val Retired = Output(Bool())
+  val wbaddr = Output(UInt(5.W))
 }
 
 class PUProbe extends Bundle {
@@ -130,8 +131,7 @@ class PiplinedPU extends Module {
   probe.MEM <> memModule.probe
   val wbModule = Module(new WriteBackModuleWithProbe)
   probe.WB <> wbModule.probe
-  val decodeexeReg = RegInit(
-    (new PassuInstBundle).Lit(
+  val decodeexeinitialValue =   (new PassuInstBundle).Lit(
       _.wb_en -> false.B,
       _.wb_sel -> DATA_XXX,
       _.rd_addr -> 0.U,
@@ -148,7 +148,8 @@ class PiplinedPU extends Module {
       _.bru_op -> core.BrExe.BrOp.Br_EQ,
       _.notbubble -> false.B,
     )
-  )
+  val decodeexeReg = RegInit(decodeexeinitialValue)
+  val decodeexeRegEN = Wire(Bool())
   val exememReg = RegInit(
     (new ExeMemBundle).Lit(
       _.wb_en -> false.B,
@@ -193,4 +194,9 @@ class PiplinedPU extends Module {
   val wbdone = RegInit(false.B)
   wbdone := wbModule.io.out.WriteEnable && memwbReg.notbubble
   probe.pipelinestate.Retired := wbdone  
+  val wbaddrReg = RegInit(0.U(5.W))
+  when(wbModule.io.out.WriteEnable && memwbReg.notbubble) {
+    wbaddrReg := wbModule.io.out.rd_addr
+  }
+  probe.pipelinestate.wbaddr := wbaddrReg
 }

@@ -56,6 +56,8 @@ class DecodeModuleProbeIO extends Bundle{
     val imm_u = Output(UInt(64.W))
     val inst_rs1 = Output(UInt(5.W))
     val inst_rs2 = Output(UInt(5.W))
+    val pc = Output(UInt(64.W))
+    val notbubble = Output(Bool())
 }
 
 class DecodeModuleWithProbe extends DecodeModule {
@@ -67,6 +69,8 @@ class DecodeModuleWithProbe extends DecodeModule {
     probe.imm_u := io.out.imm_u
     probe.inst_rs1 := inst_rs1
     probe.inst_rs2 := inst_rs2
+    probe.pc := io.in.pc
+    probe.notbubble := io.in.notbubble
 }
 
 object DecodeModule {

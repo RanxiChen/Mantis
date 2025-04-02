@@ -9,19 +9,24 @@ class InstQuequeBuilder extends Module {
     val io = IO(new Bundle{
         val in = Input(new PassPCInstBundle)
         val out = Output(new PassPCInstBundle)
+        val en = Input(Bool())
+        val clr = Input(Bool())
     })
 }
 
 class SingleInstQueue extends InstQuequeBuilder {
-    val instQueque = RegInit(
-        (new PassPCInstBundle).Lit(
-            _.inst -> Instructions.NOP,
-            _.pc -> 0.U,
-            _.pc_4 -> 0.U,
-            _.notbubble -> false.B,
-        )
+    val initialValue = (new PassPCInstBundle).Lit(
+      _.inst -> Instructions.NOP,
+      _.pc -> 0.U,
+      _.pc_4 -> 0.U,
+      _.notbubble -> false.B,
     )
-    instQueque <> io.in
+    val instQueque = RegInit(initialValue)
+    when(io.clr){
+      instQueque <> initialValue
+    }.elsewhen(io.en){
+      instQueque <> io.in
+    }
     io.out <> instQueque
 }
 class InstQuequeWithProbe extends SingleInstQueue{

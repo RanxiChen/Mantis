@@ -37,6 +37,8 @@ class ExeModuleProbeIO extends Bundle{
         val src2 = Output(UInt(64.W))
         val alu_op = Output(UInt(4.W))
         val alu_res = Output(UInt(64.W))
+        val pc = Output(UInt(64.W))
+        val notbubble = Output(Bool())
 }
 
 class ExeModuleWithProbe extends ExeModule {
@@ -45,6 +47,8 @@ class ExeModuleWithProbe extends ExeModule {
     probe.src2 := io.in.src2
     probe.alu_op := io.in.alu_op
     probe.alu_res := io.out.alu_res
+    probe.pc := io.in.pc_4 -4.U
+    probe.notbubble := io.in.notbubble
 }
 object ExeModule {
     def apply(probe: Boolean=false): ExeModule = {

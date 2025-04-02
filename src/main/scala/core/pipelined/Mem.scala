@@ -40,6 +40,8 @@ class MemModuleProbeIO extends Bundle {
         val sig = Output(Bool())
         val wdata = Output(UInt(64.W))
         val rdata = Output(UInt(64.W))
+        val pc = Output(UInt(64.W))
+        val notbubble = Output(Bool())
 }
 class MemModuleWithProbe extends MemModule {
     val probe = IO(new MemModuleProbeIO)
@@ -49,6 +51,8 @@ class MemModuleWithProbe extends MemModule {
     probe.sig := io.getdata.sig
     probe.wdata := io.getdata.wdata
     probe.rdata := io.out.mem_res
+    probe.pc := io.in.pc_4 - 4.U
+    probe.notbubble := io.in.notbubble
 }
 object MemModule {
     def apply(probe: Boolean=false): MemModule = {
