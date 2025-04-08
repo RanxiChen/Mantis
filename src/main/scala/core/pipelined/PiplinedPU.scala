@@ -24,13 +24,19 @@ class FeadBackPCBundle extends Bundle {
 }
 
 class PCGenModule extends Module{
-  val io = IO(new PassPCBundle)
-  val pcReg = RegInit(0.U(64.W))
+  val io = IO(new Bundle{
+    val out = new PassPCBundle
+    val en = Input(Bool())
+    val clr = Input(Bool())
+  })
+  val pcReg = withReset(io.clr){RegInit(0.U(64.W))}
   val pc_4 = Wire(UInt(64.W))
   pc_4 := pcReg + 4.U
-  pcReg := pc_4
-  io.pc := pcReg
-  io.pc_4 := pc_4
+  when(io.en){
+    pcReg := pc_4
+  }
+  io.out.pc := pcReg
+  io.out.pc_4 := pc_4
   //printf("PC: 0x%x\n", pcReg)
 }
 
@@ -148,10 +154,13 @@ class PiplinedPU extends Module {
       _.bru_op -> core.BrExe.BrOp.Br_EQ,
       _.notbubble -> false.B,
     )
-  val decodeexeReg = RegInit(decodeexeinitialValue)
   val decodeexeRegEN = Wire(Bool())
-  val exememReg = RegInit(
-    (new ExeMemBundle).Lit(
+  val decodeexeRegCLR = Wire(Bool())
+  val decodeexeReg = withReset(decodeexeRegCLR){
+    RegEnable(decodeModule.io.out,decodeexeinitialValue,decodeexeRegEN)
+  }
+
+  val exememReginitialValue =  (new ExeMemBundle).Lit(
       _.wb_en -> false.B,
       _.wb_sel -> DATA_XXX,
       _.rd_addr -> 0.U,
@@ -164,9 +173,9 @@ class PiplinedPU extends Module {
       _.rs2_data -> 0.U,
       _.notbubble -> false.B,
     )
-  )
-  val memwbReg = RegInit(
-    (new MemWritebackBundle).Lit(
+  val exememRegEN = Wire(Bool())
+  val exememRegCLR = Wire(Bool())
+  val memwbReginitialValue = (new MemWritebackBundle).Lit(
       _.wb_en -> false.B,
       _.wb_sel -> DATA_XXX,
       _.rd_addr -> 0.U,
@@ -176,20 +185,72 @@ class PiplinedPU extends Module {
       _.imm_u -> 0.U,
       _.notbubble -> false.B,
     )
-  )
+  val memwbRegEN = Wire(Bool())
+  val memwbRegCLR = Wire(Bool())
+  //IF
   io.fetchinst <> ifetchModule.io.getInst
-  ifetchModule.io.pcIn <> pcModule.io
+  ifetchModule.io.pcIn <> pcModule.io.out
   ifetchModule.io.out <> instQueue.io.in
+  //reg
   instQueue.io.out <> decodeModule.io.in
   decodeModule.io.fetchrf <> rf.io.readPort
-  decodeModule.io.out <> decodeexeReg
+
+  //decodeModule.io.out <> decodeexeReg
+  
   exeModule.io.in <> decodeexeReg
-  exeModule.io.out <> exememReg
-  memModule.io.in <> exememReg
+  //exeModule.io.out <> exememReg
+  val exememReg = withReset(exememRegCLR){
+    RegEnable(exeModule.io.out,exememReginitialValue,exememRegEN)
+  }
+  memModule.io.in := exememReg
   memModule.io.getdata <> io.fetchdata
-  memModule.io.out <> memwbReg
-  wbModule.io.in <> memwbReg
+  //memModule.io.out <> memwbReg
+  val memwbReg = withReset(memwbRegCLR){
+    RegEnable(memModule.io.out,memwbReginitialValue,memwbRegEN)
+  }
+  wbModule.io.in := memwbReg
   wbModule.io.out <> rf.io.writePort
+  /**stall
+   * version 1
+   * stop instqueue and pc
+   * untill data written back
+  * */
+  val flow_stall = Wire(Bool())
+  val rs1_in_pipe = Wire(Bool())
+  val rs2_in_pipe = Wire(Bool())
+  rs1_in_pipe := (decodeModule.io.fetchrf.src1_addr === exeModule.io.out.rd_addr) && (exeModule.io.in.notbubble) ||
+       (decodeModule.io.fetchrf.src1_addr === memModule.io.out.rd_addr) && memModule.io.in.notbubble ||
+       (decodeModule.io.fetchrf.src1_addr === wbModule.io.out.rd_addr) && wbModule.io.in.notbubble
+  rs2_in_pipe := (decodeModule.io.fetchrf.src2_addr === exeModule.io.out.rd_addr) && exeModule.io.in.notbubble ||
+        (decodeModule.io.fetchrf.src2_addr === memModule.io.out.rd_addr) && memModule.io.in.notbubble  ||
+        (decodeModule.io.fetchrf.src2_addr === wbModule.io.out.rd_addr) && wbModule.io.in.notbubble
+  flow_stall := rs1_in_pipe || rs2_in_pipe
+  when(flow_stall){
+    //stop pcModule and instQueue
+    pcModule.io.en := false.B
+    pcModule.io.clr := false.B
+    instQueue.io.clr := false.B
+    instQueue.io.en := false.B
+    //insert bubble
+    decodeexeRegCLR := true.B
+    decodeexeRegEN := false.B
+    //continue run previous inst
+    exememRegCLR := false.B
+    exememRegEN := true.B
+    memwbRegCLR := false.B
+    memwbRegEN := true.B
+  }.otherwise{
+    pcModule.io.en := true.B
+    pcModule.io.clr := false.B
+    instQueue.io.clr := false.B
+    instQueue.io.en := true.B
+    decodeexeRegCLR := false.B
+    decodeexeRegEN := true.B
+    exememRegCLR := false.B
+    exememRegEN := true.B
+    memwbRegEN := true.B
+    memwbRegCLR := false.B
+  }
   //whether writeback finished
   val wbdone = RegInit(false.B)
   wbdone := wbModule.io.out.WriteEnable && memwbReg.notbubble

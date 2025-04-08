@@ -39,8 +39,20 @@ class PipelinedRegFileImpl extends Module {
   when(io.writePort.WriteEnable && io.writePort.rd_addr =/= 0.U){
     rf(io.writePort.rd_addr) := io.writePort.rd_data
   }
+  /*
   io.readPort.src1_data := rf(io.readPort.src1_addr)
   io.readPort.src2_data := rf(io.readPort.src2_addr)
+  */
+  io.readPort.src1_data := Mux(
+    io.readPort.src1_addr === 0.U,
+    0.U,
+    Mux(io.readPort.src1_addr === io.writePort.rd_addr && io.writePort.WriteEnable, io.writePort.rd_data, rf(io.readPort.src1_addr))
+  )
+  io.readPort.src2_data := Mux(
+    io.readPort.src2_addr === 0.U,
+    0.U,
+    Mux(io.readPort.src2_addr === io.writePort.rd_addr && io.writePort.WriteEnable, io.writePort.rd_data, rf(io.readPort.src2_addr))
+  )
 }
 
 class PipelinedRegFileWithWatchPort extends PipelinedRegFileImpl{

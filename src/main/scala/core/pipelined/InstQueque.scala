@@ -23,11 +23,11 @@ class SingleInstQueue extends InstQuequeBuilder {
     )
     val instQueque = RegInit(initialValue)
     when(io.clr){
-      instQueque <> initialValue
+      instQueque := initialValue
     }.elsewhen(io.en){
-      instQueque <> io.in
+      instQueque := io.in
     }
-    io.out <> instQueque
+    io.out := instQueque
 }
 class InstQuequeWithProbe extends SingleInstQueue{
     val probe = IO(new PassPCInstBundle)

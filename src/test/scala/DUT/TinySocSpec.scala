@@ -13,7 +13,7 @@ import chisel3.experimental.BundleLiterals._
 class TinySocSpec extends AnyFreeSpec with Matchers with ChiselScalatestTester {
     //accept rom and run
     "test one Tiny Soc but 5 stage pipelined" in {
-        val max_cycle=15
+        val max_cycle=25
         test(new TinySOC(1,"conf/rom.hex")(true) ).withAnnotations(Seq(VerilatorBackendAnnotation/*,WriteVcdAnnotation*/)){ dut =>
             //reset
             //val testSets = tool.PUPort.testSetsfromFile("conf/pipelined.ref")
