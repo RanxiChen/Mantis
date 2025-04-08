@@ -218,13 +218,14 @@ class PiplinedPU extends Module {
   val flow_stall = Wire(Bool())
   val rs1_in_pipe = Wire(Bool())
   val rs2_in_pipe = Wire(Bool())
+
   rs1_in_pipe := (decodeModule.io.fetchrf.src1_addr === exeModule.io.out.rd_addr) && (exeModule.io.in.notbubble) ||
        (decodeModule.io.fetchrf.src1_addr === memModule.io.out.rd_addr) && memModule.io.in.notbubble ||
        (decodeModule.io.fetchrf.src1_addr === wbModule.io.out.rd_addr) && wbModule.io.in.notbubble
   rs2_in_pipe := (decodeModule.io.fetchrf.src2_addr === exeModule.io.out.rd_addr) && exeModule.io.in.notbubble ||
         (decodeModule.io.fetchrf.src2_addr === memModule.io.out.rd_addr) && memModule.io.in.notbubble  ||
         (decodeModule.io.fetchrf.src2_addr === wbModule.io.out.rd_addr) && wbModule.io.in.notbubble
-  flow_stall := rs1_in_pipe || rs2_in_pipe
+  flow_stall := rs1_in_pipe && decodeModule.io.fetchrf.src1_addr.orR  || rs2_in_pipe && decodeModule.io.fetchrf.src2_addr.orR
   when(flow_stall){
     //stop pcModule and instQueue
     pcModule.io.en := false.B

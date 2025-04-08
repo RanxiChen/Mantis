@@ -14,6 +14,8 @@ object Colors {
   val PURPLE = "\u001B[35m"
   val CYAN = "\u001B[36m"
   val WHITE = "\u001B[37m"
+  val MAGENTA = "\u001B[35m"
+  val DARK_GRAY = "\u001B[90m"
   val colorbar = Array(
     //BLACK,
     //RED,
@@ -22,14 +24,14 @@ object Colors {
     BLUE,
     PURPLE,
     CYAN,
-    BLACK
+    //BLACK
     //WHITE
   )
   def getcolor(Index:Int): String = {
     if(Index < 0){
       colorbar(0)
     }else{
-    colorbar(Index%6)
+    colorbar(Index%5)
   }
 }
 }
