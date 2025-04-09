@@ -52,6 +52,7 @@ object IDMap {
     XOR        -> List(PC_4     ,A_RS1   ,B_RS2,   IMM_X  ,OP_XOR,  Br_XXX,  WIDTH_X   ,SIG_X   ,MEM_N  ,DATA_ALU   ,WB_W),
     //RV64I
     LD         -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_I  ,OP_ADD,  Br_XXX,  WIDTH_D   ,SIG_X   ,MEM_N  ,DATA_MEM   ,WB_W),
-    SD         -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_S  ,OP_ADD,  Br_XXX,  WIDTH_D   ,SIG_X   ,MEM_W  ,DATA_XXX   ,WB_N)
+    SD         -> List(PC_4     ,A_RS1   ,B_IMM,   IMM_S  ,OP_ADD,  Br_XXX,  WIDTH_D   ,SIG_X   ,MEM_W  ,DATA_XXX   ,WB_N),
+    END        -> List(PC_4     ,A_XXX   ,B_XXX,   IMM_X  ,OP_XXX,  Br_XXX,  WIDTH_X   ,SIG_X   ,MEM_N  ,DATA_XXX   ,WB_N),
     )
 }

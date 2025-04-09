@@ -133,7 +133,7 @@ object dumpPU {
                 dut.io.WB.rd_addr.peek().litValue,
                 dumpPU.wb_sel(dut.io.WB.wb_sel)) + dumpPU.bubbleOrPC(dut.io.WB.notbubble,dut.io.WB.pc.peek().litValue,numeric_width) + RESET
         }else {
-            colorChar + s"[WB] No Write Back " + dumpPU.bubbleOrPC(dut.io.WB.notbubble,dut.io.WB.pc.peek().litValue,numeric_width) +RESET
+            colorChar + s"[WB]%${numeric_width + 27}s".format(" N o   W r i t e   B a c k   ") + dumpPU.bubbleOrPC(dut.io.WB.notbubble,dut.io.WB.pc.peek().litValue,numeric_width) +RESET
         }
     }
     def dumppipeSate(dut:core.pipelined.TinySOC):String = {
@@ -143,27 +143,67 @@ object dumpPU {
             ""
         }
     }
+    def testRef(dut:core.pipelined.TinySOC,testSets:tool.PUPort.PUTestValue):Unit = {
+        for((port,name) <- testSets){
+            port match {
+                case tool.Reg(n) => {
+                    dut.io.rf.addr.poke(n.U)
+                    dut.io.rf.data.expect(name.U)
+                    print("[Reg] %02d:0x%03x\t".format(n,name))
+                    print("In fact 0x%03x".format(dut.io.rf.data.peek().litValue))
+                }
+                case _ => {
+                    println("Not support yet")
+                }
+            }
+        } 
+    }
+    def testSoc(dut:core.pipelined.TinySOC,refFilePath:String = "conf/pipelined.ref",max_cycle:Int=100,numeric_width:Int =3):Unit ={
+        val testSets = tool.PUPort.testSetsfromFile(refFilePath)
+        resetDut(dut)
+        var retired_inst_cnt =0
+        var pc_end:BigInt = 0
+        var inst_total:BigInt = 0
+        var cycle_total:BigInt = 0
+        for(cnt <- 0 to max_cycle){
+            if(dut.io.IF.inst.peek().litValue == BitPat.bitPatToUInt(core.Instructions.END).litValue){
+                pc_end = dut.io.IF.pc.peek().litValue
+            }            
+            print(dumpPU.dumpPC(dut,numeric_width))
+            print(dumpPU.dumpIF(dut,numeric_width))
+            print("[InstQueue]")
+            print(dumpPU.dumpID(dut,numeric_width))
+            print("[reg]")
+            print(dumpPU.dumpEXE(dut,numeric_width))
+            print("[reg]")
+            print(dumpPU.dumpMEM(dut,numeric_width))
+            print("[reg]")
+            print(dumpPU.dumpWB(dut,numeric_width))
+            print(dumpPU.dumppipeSate(dut))
+            if(dut.io.pipelinestate.Retired.peek().litToBoolean){
+                retired_inst_cnt += 1
+                print("Inst %d retired\t".format(retired_inst_cnt))
+                if(testSets.contains(retired_inst_cnt) && retired_inst_cnt <= testSets.keys.max){
+                    print("TestRef:")
+                    dumpPU.testRef(dut,testSets(retired_inst_cnt))
+                }
+            }
+            println()
+            if(dut.io.WB.pc.peek().litValue == pc_end){
+                inst_total = retired_inst_cnt + 1
+                cycle_total = dut.io.mcycle.peek().litValue + 1
+            }
+            dut.clock.step()
+        }
+        println(s"Total cycle: $cycle_total")
+        println(s"Total inst: $inst_total")
+        println(s"CPI: ${cycle_total/inst_total}")
+    }
 }
 class NewSoc extends AnyFreeSpec with Matchers {
     "test soc" in {
-        val max_cycle=25
         simulate(new TinySOC(1,"conf/rom.hex")(true)){dut =>
-            dumpPU.resetDut(dut)
-            for(cnt <- 0 to max_cycle){
-                print(dumpPU.dumpPC(dut))
-                print(dumpPU.dumpIF(dut))
-                print("[InstQueue]")
-                print(dumpPU.dumpID(dut))
-                print("[reg]")
-                print(dumpPU.dumpEXE(dut))
-                print("[reg]")
-                print(dumpPU.dumpMEM(dut))
-                print("[reg]")
-                print(dumpPU.dumpWB(dut))
-                print(dumpPU.dumppipeSate(dut))
-                println()
-                dut.clock.step()
-            }            
+            dumpPU.testSoc(dut,"conf/pipelined.ref",100)
         }
     }
 }
