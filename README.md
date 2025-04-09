@@ -5,3 +5,4 @@ One risc-v core
 
 ## Description
 b-type and the two jump-related inst will change PC at wb stage
+bypass network will just bypass result from alu

@@ -225,19 +225,60 @@ class PiplinedPU extends Module {
   rs2_in_pipe := (decodeModule.io.fetchrf.src2_addr === exeModule.io.out.rd_addr) && exeModule.io.in.notbubble ||
         (decodeModule.io.fetchrf.src2_addr === memModule.io.out.rd_addr) && memModule.io.in.notbubble  ||
         (decodeModule.io.fetchrf.src2_addr === wbModule.io.out.rd_addr) && wbModule.io.in.notbubble
-  flow_stall := rs1_in_pipe && decodeModule.io.fetchrf.src1_addr.orR  || rs2_in_pipe && decodeModule.io.fetchrf.src2_addr.orR
+  val (rs1_bypass_able,rs1_from_bypass) = (Wire(Bool()),Wire(UInt(64.W)))
+  val (rs2_bypass_able,rs2_from_bypass) = (Wire(Bool()),Wire(UInt(64.W)))
+  //just bypass compute-related inst
+  when(wbModule.io.out.rd_addr === decodeModule.io.fetchrf.src1_addr && wbModule.io.out.WriteEnable){
+    // bypass from wb
+    rs1_bypass_able := true.B
+    rs1_from_bypass := wbModule.io.out.rd_data
+  }.elsewhen(memModule.io.out.rd_addr === decodeModule.io.fetchrf.src1_addr && memModule.io.out.wb_en ){
+    //bypass from mem, fetch data will write to regfile
+    rs1_bypass_able := memModule.io.in.wb_sel ===  DATA_ALU
+    rs1_from_bypass := memModule.io.out.alu_res   
+    }.elsewhen(exeModule.io.out.rd_addr === decodeModule.io.fetchrf.src1_addr && exeModule.io.out.wb_en){
+    rs1_bypass_able := exeModule.io.out.wb_sel === DATA_ALU
+    rs1_from_bypass := exeModule.io.out.alu_res
+  }.otherwise{
+    rs1_bypass_able := false.B
+    rs1_from_bypass := 0.U
+  }
+  //by pass to rs2
+  when(wbModule.io.out.rd_addr === decodeModule.io.fetchrf.src2_addr && wbModule.io.out.WriteEnable){
+    // bypass from wb
+    rs2_bypass_able := true.B
+    rs2_from_bypass := wbModule.io.out.rd_data
+  }.elsewhen(memModule.io.out.rd_addr === decodeModule.io.fetchrf.src2_addr && memModule.io.out.wb_en ){
+    //bypass from mem, fetch data will write to regfile
+    rs2_bypass_able := memModule.io.in.wb_sel ===  DATA_ALU
+    rs2_from_bypass := memModule.io.out.alu_res   
+    }.elsewhen(exeModule.io.out.rd_addr === decodeModule.io.fetchrf.src2_addr && exeModule.io.out.wb_en){
+    rs2_bypass_able := exeModule.io.out.wb_sel === DATA_ALU
+    rs2_from_bypass := exeModule.io.out.alu_res
+  }.otherwise{
+    rs2_bypass_able := false.B
+    rs2_from_bypass := 0.U
+  }
+
+  decodeModule.io.bypass.rs1_bypass_able := rs1_bypass_able
+  decodeModule.io.bypass.rs1_from_bypass := rs1_from_bypass
+  decodeModule.io.bypass.rs2_bypass_able := rs2_bypass_able
+  decodeModule.io.bypass.rs2_from_bypass := rs2_from_bypass
+   
+
+  flow_stall := (rs1_in_pipe && decodeModule.io.fetchrf.src1_addr.orR) && (!rs1_bypass_able)  || (rs2_in_pipe && decodeModule.io.fetchrf.src2_addr.orR) && (!rs2_bypass_able)
   when(flow_stall){
     //stop pcModule and instQueue
     pcModule.io.en := false.B
     pcModule.io.clr := false.B
     instQueue.io.clr := false.B
     instQueue.io.en := false.B
-    //insert bubble
+    
     decodeexeRegCLR := true.B
     decodeexeRegEN := false.B
-    //continue run previous inst
-    exememRegCLR := false.B
-    exememRegEN := true.B
+    
+    exememRegCLR := (false).B
+    exememRegEN := (true).B
     memwbRegCLR := false.B
     memwbRegEN := true.B
   }.otherwise{

@@ -2,12 +2,18 @@ package core.pipelined
 
 import chisel3._
 import chisel3.util._
-
+class fetchbypassPort extends Bundle {
+    val rs1_bypass_able = Input(Bool())
+    val rs2_bypass_able = Input(Bool())
+    val rs1_from_bypass = Input(UInt(64.W))
+    val rs2_from_bypass = Input(UInt(64.W))
+}
 class DecodeModule extends Module {
     val io = IO(new Bundle{
         val in = Input(new PassPCInstBundle)
         val out = Output(new PassuInstBundle)
         val fetchrf = Flipped(new RegFileReadPort)
+        val bypass = new fetchbypassPort
     })
     import core.Signal._
     import core.IDMap._
@@ -25,12 +31,17 @@ class DecodeModule extends Module {
     immValue := immgen.io.imm
     immgen.io.sel := CtrlSigs(3)
 
-    io.out.src1 := Mux(CtrlSigs(1) === A_PC,io.in.pc,io.fetchrf.src1_data )
+    val fetchOrBypass1 = Wire(UInt(64.W))
+    val fetchOrBypass2 = Wire(UInt(64.W))
+    fetchOrBypass1 := Mux(io.bypass.rs1_bypass_able, io.bypass.rs1_from_bypass, io.fetchrf.src1_data)
+    fetchOrBypass2 := Mux(io.bypass.rs2_bypass_able, io.bypass.rs2_from_bypass, io.fetchrf.src2_data)
+
+    io.out.src1 := Mux(CtrlSigs(1) === A_PC,io.in.pc,fetchOrBypass1 )
     io.out.src2 := MuxCase(0.U,
     IndexedSeq(
         (CtrlSigs(2) === B_PC) -> io.in.pc,
         (CtrlSigs(2) === B_IMM) -> immValue,
-        (CtrlSigs(2) === B_RS2) -> io.fetchrf.src2_data
+        (CtrlSigs(2) === B_RS2) -> fetchOrBypass2
     )
     )
     

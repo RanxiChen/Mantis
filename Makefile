@@ -18,5 +18,6 @@ clean:
 
 test:
 	cp unittest/PipelinedRV64/Hazard01Text.hex conf/rom.hex
+	echo "ffffffff" >> conf/rom.hex
 	cp unittest/PipelinedRV64/Hazard01.ref conf/pipelined.ref
-	sbt 'testOnly core.pipelined.TinySocSpec'
+	sbt 'testOnly core.pipelined.NewSoc'

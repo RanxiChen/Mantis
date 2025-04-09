@@ -162,10 +162,11 @@ object dumpPU {
         val testSets = tool.PUPort.testSetsfromFile(refFilePath)
         resetDut(dut)
         var retired_inst_cnt =0
-        var pc_end:BigInt = 0
+        var pc_end:BigInt = -1
         var inst_total:BigInt = 0
         var cycle_total:BigInt = 0
-        for(cnt <- 0 to max_cycle){
+        var work:Boolean = true
+        for(cnt <- 0 to max_cycle if work ){
             if(dut.io.IF.inst.peek().litValue == BitPat.bitPatToUInt(core.Instructions.END).litValue){
                 pc_end = dut.io.IF.pc.peek().litValue
             }            
@@ -182,7 +183,7 @@ object dumpPU {
             print(dumpPU.dumppipeSate(dut))
             if(dut.io.pipelinestate.Retired.peek().litToBoolean){
                 retired_inst_cnt += 1
-                print("Inst %d retired\t".format(retired_inst_cnt))
+                print("Inst %03d retired\t".format(retired_inst_cnt))
                 if(testSets.contains(retired_inst_cnt) && retired_inst_cnt <= testSets.keys.max){
                     print("TestRef:")
                     dumpPU.testRef(dut,testSets(retired_inst_cnt))
@@ -192,12 +193,14 @@ object dumpPU {
             if(dut.io.WB.pc.peek().litValue == pc_end){
                 inst_total = retired_inst_cnt + 1
                 cycle_total = dut.io.mcycle.peek().litValue + 1
+                work = false
             }
             dut.clock.step()
         }
         println(s"Total cycle: $cycle_total")
         println(s"Total inst: $inst_total")
-        println(s"CPI: ${cycle_total/inst_total}")
+        println(s"CPI: ${BigDecimal(cycle_total) / BigDecimal(inst_total)}")
+        //println(pc_end.toString(16))
     }
 }
 class NewSoc extends AnyFreeSpec with Matchers {
