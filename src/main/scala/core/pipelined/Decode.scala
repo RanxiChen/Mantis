@@ -52,12 +52,14 @@ class DecodeModule extends Module {
     io.out.mem_we := CtrlSigs(8)
     io.out.wb_sel := CtrlSigs(9)
     io.out.wb_en := CtrlSigs(10)
-    //io.out.pc_sel := CtrlSigs(0)
+    io.out.pc_sel := CtrlSigs(0)
     io.out.pc_4 := io.in.pc_4
     io.out.rd_addr := inst_rd
     io.out.rs2_data := io.fetchrf.src2_data
     io.out.imm_u := immValue
     io.out.notbubble := io.in.notbubble
+    io.out.rs1_reg := fetchOrBypass1
+    io.out.rs2_reg := fetchOrBypass2
 }
 class DecodeModuleProbeIO extends Bundle{
     val src1 = Output(UInt(64.W))
@@ -69,6 +71,10 @@ class DecodeModuleProbeIO extends Bundle{
     val inst_rs2 = Output(UInt(5.W))
     val pc = Output(UInt(64.W))
     val notbubble = Output(Bool())
+    val pc_sel = Output(core.Signal.PC_4.cloneType)
+    val inst = Output(UInt(32.W))
+    val rs1_bypass_in = Output(UInt(64.W))
+    val rs2_bypass_in = Output(UInt(64.W))
 }
 
 class DecodeModuleWithProbe extends DecodeModule {
@@ -82,16 +88,9 @@ class DecodeModuleWithProbe extends DecodeModule {
     probe.inst_rs2 := inst_rs2
     probe.pc := io.in.pc
     probe.notbubble := io.in.notbubble
+    probe.inst := io.in.inst
+    probe.pc_sel := io.out.pc_sel
+    probe.rs1_bypass_in := io.bypass.rs1_from_bypass
+    probe.rs2_bypass_in := io.bypass.rs2_from_bypass
 }
 
-object DecodeModule {
-    def apply(probe: Boolean=false): DecodeModule = {
-        if (probe) {
-            val decodeModule = Module(new DecodeModuleWithProbe)
-            decodeModule
-        } else {
-            val decodeModule = Module(new DecodeModule)
-            decodeModule
-        }
-    }
-}

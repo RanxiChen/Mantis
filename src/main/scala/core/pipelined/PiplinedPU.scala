@@ -26,13 +26,16 @@ class FeadBackPCBundle extends Bundle {
 class PCGenModule extends Module{
   val io = IO(new Bundle{
     val out = new PassPCBundle
-    val en = Input(Bool())
+    val flush = Input(Bool())
     val clr = Input(Bool())
+    val pc_after_flush = Input(UInt(64.W))
   })
   val pcReg = withReset(io.clr){RegInit(0.U(64.W))}
   val pc_4 = Wire(UInt(64.W))
   pc_4 := pcReg + 4.U
-  when(io.en){
+  when(io.flush){
+    pcReg := io.pc_after_flush
+  }.otherwise{
     pcReg := pc_4
   }
   io.out.pc := pcReg
@@ -84,6 +87,9 @@ class PassuInstBundle extends Bundle {
   val mem_we = Bool()
   val rs2_data = UInt(64.W)
   val notbubble = Bool()
+  val rs1_reg = UInt(64.W)
+  val rs2_reg = UInt(64.W)
+  val pc_sel = UInt(2.W)
 }
 
 class FetchDataIO extends Bundle {
@@ -104,6 +110,18 @@ class PipelineState extends Bundle {
   val wbaddr = Output(UInt(5.W))
 }
 
+class pcModuleProbe extends Bundle {
+  val pcReg = Output(UInt(64.W))
+  val flush = Output(Bool())
+  val clr = Output(Bool())
+  val pc_after_flush = Output(UInt(64.W)) 
+  val jump_penalty = Output(Bool())
+}
+class bypassProbe extends Bundle {
+  val rs1_bypass_able = Output(Bool())
+  val rs2_bypass_able = Output(Bool())
+}
+
 class PUProbe extends Bundle {
     val mcycle = UInt(64.W)
     val IF = new PassPCInstBundle
@@ -113,6 +131,8 @@ class PUProbe extends Bundle {
     val WB = new WriteBackModuleProbeIO
     val rf = new RegWatchPort
     val pipelinestate = new PipelineState
+    val pc = new pcModuleProbe
+    val bypass = new bypassProbe
 }
 
 class PiplinedPU extends Module {
@@ -153,6 +173,7 @@ class PiplinedPU extends Module {
       _.alu_op -> core.ALU.ALUOp.OP_ADD,
       _.bru_op -> core.BrExe.BrOp.Br_EQ,
       _.notbubble -> false.B,
+      _.pc_sel -> PC_4,
     )
   val decodeexeRegEN = Wire(Bool())
   val decodeexeRegCLR = Wire(Bool())
@@ -235,9 +256,9 @@ class PiplinedPU extends Module {
   }.elsewhen(memModule.io.out.rd_addr === decodeModule.io.fetchrf.src1_addr && memModule.io.out.wb_en ){
     //bypass from mem, fetch data will write to regfile
     rs1_bypass_able := memModule.io.in.wb_sel ===  DATA_ALU
-    rs1_from_bypass := memModule.io.out.alu_res   
+    rs1_from_bypass := memModule.io.out.alu_res
     }.elsewhen(exeModule.io.out.rd_addr === decodeModule.io.fetchrf.src1_addr && exeModule.io.out.wb_en){
-    rs1_bypass_able := exeModule.io.out.wb_sel === DATA_ALU
+    rs1_bypass_able := exeModule.io.out.wb_sel === DATA_ALU/*TODO:check wether can bypass from exe stage*/
     rs1_from_bypass := exeModule.io.out.alu_res
   }.otherwise{
     rs1_bypass_able := false.B
@@ -251,7 +272,7 @@ class PiplinedPU extends Module {
   }.elsewhen(memModule.io.out.rd_addr === decodeModule.io.fetchrf.src2_addr && memModule.io.out.wb_en ){
     //bypass from mem, fetch data will write to regfile
     rs2_bypass_able := memModule.io.in.wb_sel ===  DATA_ALU
-    rs2_from_bypass := memModule.io.out.alu_res   
+    rs2_from_bypass := memModule.io.out.alu_res  
     }.elsewhen(exeModule.io.out.rd_addr === decodeModule.io.fetchrf.src2_addr && exeModule.io.out.wb_en){
     rs2_bypass_able := exeModule.io.out.wb_sel === DATA_ALU
     rs2_from_bypass := exeModule.io.out.alu_res
@@ -259,17 +280,35 @@ class PiplinedPU extends Module {
     rs2_bypass_able := false.B
     rs2_from_bypass := 0.U
   }
+  probe.bypass.rs1_bypass_able := rs1_bypass_able
+  probe.bypass.rs2_bypass_able := rs2_bypass_able
 
   decodeModule.io.bypass.rs1_bypass_able := rs1_bypass_able
   decodeModule.io.bypass.rs1_from_bypass := rs1_from_bypass
   decodeModule.io.bypass.rs2_bypass_able := rs2_bypass_able
   decodeModule.io.bypass.rs2_from_bypass := rs2_from_bypass
-   
 
+  val feed_to_pc = Wire(UInt(64.W))
+  feed_to_pc := Mux(exeModule.io.pc_sel === PC_JLR,exeModule.io.out.alu_res & (Fill(63,true.B) ## false.B),exeModule.io.out.alu_res)
+  pcModule.io.pc_after_flush := feed_to_pc  
   flow_stall := (rs1_in_pipe && decodeModule.io.fetchrf.src1_addr.orR) && (!rs1_bypass_able)  || (rs2_in_pipe && decodeModule.io.fetchrf.src2_addr.orR) && (!rs2_bypass_able)
-  when(flow_stall){
+  val jump_penalty = Wire(Bool())
+  jump_penalty := Mux(exeModule.io.pc_sel === PC_4 || exeModule.io.pc_sel === PC_BRU && (! exeModule.io.taken), false.B, true.B)
+  when(jump_penalty){
+    //flush pc and if stage
+    pcModule.io.flush := true.B
+    pcModule.io.clr := false.B
+    instQueue.io.clr := true.B
+    instQueue.io.en := false.B
+    decodeexeRegCLR := true.B
+    decodeexeRegEN := false.B
+    exememRegCLR := false.B
+    exememRegEN := true.B
+    memwbRegCLR := false.B
+    memwbRegEN := true.B
+  }.elsewhen(flow_stall){
     //stop pcModule and instQueue
-    pcModule.io.en := false.B
+    pcModule.io.flush := false.B
     pcModule.io.clr := false.B
     instQueue.io.clr := false.B
     instQueue.io.en := false.B
@@ -282,7 +321,7 @@ class PiplinedPU extends Module {
     memwbRegCLR := false.B
     memwbRegEN := true.B
   }.otherwise{
-    pcModule.io.en := true.B
+    pcModule.io.flush := false.B
     pcModule.io.clr := false.B
     instQueue.io.clr := false.B
     instQueue.io.en := true.B
@@ -295,11 +334,26 @@ class PiplinedPU extends Module {
   }
   //whether writeback finished
   val wbdone = RegInit(false.B)
-  wbdone := wbModule.io.out.WriteEnable && memwbReg.notbubble
+  wbdone := wbModule.io.in.notbubble
   probe.pipelinestate.Retired := wbdone  
   val wbaddrReg = RegInit(0.U(5.W))
   when(wbModule.io.out.WriteEnable && memwbReg.notbubble) {
     wbaddrReg := wbModule.io.out.rd_addr
   }
   probe.pipelinestate.wbaddr := wbaddrReg
+  probe.pc.pcReg := pcModule.io.out.pc
+  probe.pc.flush := pcModule.io.flush
+  probe.pc.clr := pcModule.io.clr
+  probe.pc.pc_after_flush := feed_to_pc
+  probe.pc.jump_penalty := jump_penalty
+}
+
+import _root_.circt.stage.ChiselStage
+
+object GenerateCPU extends App {
+  ChiselStage.emitSystemVerilogFile(
+    new PiplinedPU,
+    Array("--target-dir","build/rtl","--split-verilog"),
+    firtoolOpts = Array("-disable-all-randomization", "-strip-debug-info")
+  )
 }

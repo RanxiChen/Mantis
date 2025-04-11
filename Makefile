@@ -20,4 +20,9 @@ test:
 	cp unittest/PipelinedRV64/Hazard01Text.hex conf/rom.hex
 	echo "ffffffff" >> conf/rom.hex
 	cp unittest/PipelinedRV64/Hazard01.ref conf/pipelined.ref
-	sbt 'testOnly core.pipelined.NewSoc'
+	sbt 'testOnly core.pipelined.TinySocSpec'
+
+test01:
+	@echo "Running test01..."
+	cp unittest/PipelinedRV64/test01.hex conf/rom.hex
+	sbt 'testOnly core.pipelined.TinySocSpec'

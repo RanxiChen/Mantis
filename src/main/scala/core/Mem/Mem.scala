@@ -133,3 +133,11 @@ class MainMem(nkib:Int)(HexPath:String = "misc/Mem/rom.hex",HexMapFile:String = 
   }
 
 }
+import _root_.circt.stage.ChiselStage
+object GenerateMem extends App {
+  ChiselStage.emitSystemVerilogFile(
+    new MainMem(1)()(),
+    Array("--target-dir", "build/Mem"),
+    firtoolOpts = Array("-disable-all-randomization", "-strip-debug-info")
+  )
+}

@@ -4,18 +4,28 @@ import chisel3._
 import chisel3.util._
 import chisel3.experimental.BundleLiterals._
 
-class BoundaryReg[T <: Data](init:T,EN:Bool,CLR:Bool) {
-    val reg = withReset(CLR){RegInit(init)}
-    def |>>>: (next: => Data):Unit ={
-        when(EN){
-            reg := next
-        }
+class cpu extends Module {
+    val fetchInst = IO(new FetchInstIO)
+    val mcycle = RegInit(0.U(64.W))
+    mcycle := mcycle + 1.U
+    val pcGen = RegInit(0.U(64.W))
+    val pcGenEN = Wire(Bool())
+    //PC module
+    val pc_4 = Wire(UInt(64.W))
+    when(pcGenEN){
+        pcGen := pc_4
     }
-}
-
-object BoundaryReg {
-    def apply[T <: Data](init:T,EN:Bool,CLR:Bool):T = {
-        withReset(CLR){RegInit(init)}
+    //IF
+    fetchInst.addr := pcGen
+    val hexinst = Wire(UInt(64.W))
+    hexinst := fetchInst.inst
+    val instQueue_pc = RegInit(0.U(64.W))
+    val instQueue_inst = RegInit(0.U(64.W))
+    val instQueue_EN = Wire(Bool())
+    when(instQueue_EN){
+        instQueue_pc := pcGen
+        instQueue_inst := hexinst
     }
+        
 }
 

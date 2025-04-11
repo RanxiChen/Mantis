@@ -45,7 +45,7 @@ class ALU extends Module {
 }
 
 
-object ALU_V extends App {
+object GenerateALU extends App {
   ChiselStage.emitSystemVerilogFile(
     new ALU,
     Array("--target-dir", "build/ALU"),
