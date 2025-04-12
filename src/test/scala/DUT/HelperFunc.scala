@@ -243,8 +243,8 @@ object dumpPU {
         var retired_inst_cnt =0
         for(cycle_cnt <- 0 until max_cycle){
             if(cycle_cnt >= start_cycle && cycle_cnt <= real_end_cycle){
-                print(dumpPC(dut))
-                /*val color_of_PC_IF = getcolor(dut.io.IF.pc.peek().litValue.toInt/4)
+                //print(dumpPC(dut))
+                val color_of_PC_IF = getcolor(dut.io.IF.pc.peek().litValue.toInt/4)
                 print(
                     color_of_PC_IF + s"0x%0${numeric_width}x ->pcReg with flush:".format(dut.io.pc.pc_after_flush.peek().litValue) + (
                         if(dut.io.pc.flush.peek().litToBoolean) {
@@ -259,7 +259,7 @@ object dumpPU {
                             "false "
                         }
                     ) + s"with value:0x%0${numeric_width}x  ".format(dut.io.pc.pcReg.peek().litValue) + RESET
-                )*/
+                )
                 print(dumpIF(dut,numeric_width))
                 print("[InstQueue]")
                 /*print(

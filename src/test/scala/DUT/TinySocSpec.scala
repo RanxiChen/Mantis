@@ -21,7 +21,7 @@ class TinySocSpec extends AnyFreeSpec with Matchers /*with ChiselScalatestTester
 class Peek extends AnyFreeSpec with Matchers {
     "peek how jump occur" in {
         simulate(new TinySOC(1,"conf/rom.hex")(true)){dut =>
-            dumpPU.peek(dut,150,numeric_width = 16)
+            dumpPU.peek(dut,150,numeric_width = 3)
         }
     }
 }

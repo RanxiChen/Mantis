@@ -249,33 +249,31 @@ class PiplinedPU extends Module {
   val (rs1_bypass_able,rs1_from_bypass) = (Wire(Bool()),Wire(UInt(64.W)))
   val (rs2_bypass_able,rs2_from_bypass) = (Wire(Bool()),Wire(UInt(64.W)))
   //just bypass compute-related inst
-  when(wbModule.io.out.rd_addr === decodeModule.io.fetchrf.src1_addr && wbModule.io.out.WriteEnable){
-    // bypass from wb
-    rs1_bypass_able := true.B
-    rs1_from_bypass := wbModule.io.out.rd_data
+  when(exeModule.io.out.rd_addr === decodeModule.io.fetchrf.src1_addr && exeModule.io.out.wb_en){
+    // bypass from exe
+    rs1_bypass_able := exeModule.io.out.wb_sel === DATA_ALU
+    rs1_from_bypass := exeModule.io.out.alu_res
   }.elsewhen(memModule.io.out.rd_addr === decodeModule.io.fetchrf.src1_addr && memModule.io.out.wb_en ){
     //bypass from mem, fetch data will write to regfile
     rs1_bypass_able := memModule.io.in.wb_sel ===  DATA_ALU
     rs1_from_bypass := memModule.io.out.alu_res
-    }.elsewhen(exeModule.io.out.rd_addr === decodeModule.io.fetchrf.src1_addr && exeModule.io.out.wb_en){
-    rs1_bypass_able := exeModule.io.out.wb_sel === DATA_ALU/*TODO:check wether can bypass from exe stage*/
-    rs1_from_bypass := exeModule.io.out.alu_res
+    }.elsewhen(wbModule.io.out.rd_addr === decodeModule.io.fetchrf.src1_addr && wbModule.io.out.WriteEnable){
+    rs1_bypass_able := true.B
+    rs1_from_bypass := wbModule.io.out.rd_data
   }.otherwise{
     rs1_bypass_able := false.B
     rs1_from_bypass := 0.U
   }
   //by pass to rs2
-  when(wbModule.io.out.rd_addr === decodeModule.io.fetchrf.src2_addr && wbModule.io.out.WriteEnable){
-    // bypass from wb
-    rs2_bypass_able := true.B
-    rs2_from_bypass := wbModule.io.out.rd_data
-  }.elsewhen(memModule.io.out.rd_addr === decodeModule.io.fetchrf.src2_addr && memModule.io.out.wb_en ){
-    //bypass from mem, fetch data will write to regfile
-    rs2_bypass_able := memModule.io.in.wb_sel ===  DATA_ALU
-    rs2_from_bypass := memModule.io.out.alu_res  
-    }.elsewhen(exeModule.io.out.rd_addr === decodeModule.io.fetchrf.src2_addr && exeModule.io.out.wb_en){
+  when(exeModule.io.out.rd_addr === decodeModule.io.fetchrf.src2_addr && exeModule.io.out.wb_en ){
     rs2_bypass_able := exeModule.io.out.wb_sel === DATA_ALU
     rs2_from_bypass := exeModule.io.out.alu_res
+  }.elsewhen(memModule.io.out.rd_addr === decodeModule.io.fetchrf.src2_addr && memModule.io.out.wb_en ){
+    rs2_bypass_able := memModule.io.in.wb_sel ===  DATA_ALU
+    rs2_from_bypass := memModule.io.out.alu_res
+  }.elsewhen(wbModule.io.out.rd_addr === decodeModule.io.fetchrf.src2_addr && wbModule.io.out.WriteEnable){
+    rs2_bypass_able := true.B
+    rs2_from_bypass := wbModule.io.out.rd_data
   }.otherwise{
     rs2_bypass_able := false.B
     rs2_from_bypass := 0.U
