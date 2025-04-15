@@ -1,0 +1,12 @@
+[submodule "cva5"]
+	path = cva5
+	url = https://github.com/openhwgroup/cva5.git
+[submodule "cvw"]
+	path = cvw
+	url = https://github.com/openhwgroup/cvw.git
+[submodule "riscv-mini"]
+	path = riscv-mini
+	url = https://github.com/ucb-bar/riscv-mini.git
+[submodule "Verilog-caches"]
+	path = Verilog-caches
+	url = https://github.com/airin711/Verilog-caches.git

@@ -6,7 +6,8 @@ ThisBuild / organization     := "SDDX"
 
 val chiselVersion = "6.2.0"
 
-lazy val root = (project in file("."))
+lazy val mini = RootProject(file("riscv-mini"))
+lazy val Mantis = (project in file("."))
   .settings(
     name := "Mantis",
     libraryDependencies ++= Seq(
@@ -24,4 +25,4 @@ lazy val root = (project in file("."))
       "-Ymacro-annotations",
     ),
     addCompilerPlugin("org.chipsalliance" % "chisel-plugin" % chiselVersion cross CrossVersion.full),
-  )
+  ).dependsOn(mini)
