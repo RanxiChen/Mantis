@@ -36,15 +36,3 @@ class SimpleFetchWithProbeModule extends SimpleFetchModule with FetchModuleProbe
     probe.inst := io.out.inst
     probe.notbubble := io.out.notbubble
 }
-
-object FetchModule {
-    def apply(probe: Boolean=false) = {
-        if (probe) {
-            val fetchModule = Module(new SimpleFetchWithProbeModule)
-            fetchModule
-        } else {
-            val fetchModule = Module(new SimpleFetchModule)
-            fetchModule
-        }
-    }
-}

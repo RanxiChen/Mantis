@@ -14,6 +14,8 @@ class DecodeModule extends Module {
         val out = Output(new PassuInstBundle)
         val fetchrf = Flipped(new RegFileReadPort)
         val bypass = new fetchbypassPort
+        val exist_pc_0 = Output(Bool())
+        val exist_pc_epc = Output(Bool())
     })
     import core.Signal._
     import core.IDMap._

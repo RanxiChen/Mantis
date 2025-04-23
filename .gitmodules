@@ -9,4 +9,4 @@
 	url = https://github.com/ucb-bar/riscv-mini.git
 [submodule "Verilog-caches"]
 	path = Verilog-caches
-	url = https://github.com/airin711/Verilog-caches.git
+	url = https://github.com/RanxiChen/Verilog-caches.git

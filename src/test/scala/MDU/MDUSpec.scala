@@ -6,6 +6,12 @@ import chisel3.simulator.EphemeralSimulator._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 
+object M_tool {
+  def op(op:String):Int = {
+    ???
+  }
+}
+
 class MDUSpec extends AnyFreeSpec with Matchers {
   "MDU mul" in {
     simulate(new MDU){
